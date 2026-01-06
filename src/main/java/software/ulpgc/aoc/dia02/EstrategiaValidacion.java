@@ -13,4 +13,11 @@ public class EstrategiaValidacion {
         // negate() se usará después porque buscamos los que CUMPLEN esto (que son los "inválidos" para la tienda)
         return !Long.toString(id).matches("^(\\d+)\\1$");
     };
+    public static final LongPredicate PATRON_B = id -> {
+        // ^(\d+) -> Captura el grupo inicial
+        // \1{2,} -> Busca que ese grupo se repita 2 veces o más (Total >= 3 instancias)
+        // matches devuelve true si cumple el patrón.
+        // negate (!) devuelve false, marcándolo como "inválido" para la tienda.
+        return !Long.toString(id).matches("^(\\d+)\\1{2,}$");
+    };
 }
