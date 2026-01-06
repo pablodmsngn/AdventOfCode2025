@@ -10,7 +10,7 @@ public class Main01a {
         // Inyectamos la Estrategia A
         CajaFuerte safe = new CajaFuerte(ProtocolosSeguridad.PART_A);
 
-        CargadorEntrada.process("dia01Ainput", safe);
+        CargadorEntrada.process("dia01input", safe);
 
         System.out.println("--- RESULTADO PARTE A ---");
         System.out.println("Contraseña: " + safe.getVecesCero());

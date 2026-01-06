@@ -14,7 +14,7 @@ public class Main02a {
         // 2. Uso de tu CargadorEntrada (Infraestructura)
         // Delegamos la lectura y construcción al cargador estático.
         // Asegúrate de que "Day02Input.txt" esté en la carpeta resources.
-        Motor motor = CargadorEntrada.cargar("dia02Ainput", estrategia);
+        Motor motor = CargadorEntrada.cargar("dia02input", estrategia);
 
         // 3. Ejecución (Motor)
         long resultado = motor.run();
