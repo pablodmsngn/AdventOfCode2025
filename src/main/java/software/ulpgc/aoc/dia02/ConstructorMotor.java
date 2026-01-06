@@ -33,6 +33,7 @@ public class ConstructorMotor {
                 .map(String::trim)
                 .filter(s -> !s.isEmpty())
                 .map(RangoID::new);
+
         return new Motor(rangos, validator);
     }
 }
