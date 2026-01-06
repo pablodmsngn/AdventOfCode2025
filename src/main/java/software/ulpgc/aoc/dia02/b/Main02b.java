@@ -1,20 +1,20 @@
-package software.ulpgc.aoc.dia02.a;
+package software.ulpgc.aoc.dia02.b;
 
 import software.ulpgc.aoc.dia02.CargadorEntrada;
 import software.ulpgc.aoc.dia02.EstrategiasValidacion;
 import software.ulpgc.aoc.dia02.Motor;
 import java.util.function.LongPredicate;
 
-public class Main02a {
+public class Main02b {
     public static void main(String[] args) {
         // 1. Definir la Estrategia (La regla de negocio)
         // Buscamos IDs que NO cumplan el patrón repetido (ej: 123123 es inválido)
-        LongPredicate estrategia = EstrategiasValidacion.PATRON_A;
+        LongPredicate estrategia = EstrategiasValidacion.PATRON_B;
 
         // 2. Uso de tu CargadorEntrada (Infraestructura)
         // Delegamos la lectura y construcción al cargador estático.
         // Asegúrate de que "Day02Input.txt" esté en la carpeta resources.
-        Motor motor = CargadorEntrada.cargar("dia02Ainput", estrategia);
+        Motor motor = CargadorEntrada.cargar("dia02Binput", estrategia);
 
         // 3. Ejecución (Motor)
         long resultado = motor.run();
