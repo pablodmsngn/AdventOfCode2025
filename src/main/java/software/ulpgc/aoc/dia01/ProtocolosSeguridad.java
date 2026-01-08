@@ -1,6 +1,6 @@
 package software.ulpgc.aoc.dia01;
 
-
+//clase de utilidad
 public class ProtocolosSeguridad {
 
     // --- Estrategia A: Contar si terminamos en 0 ---

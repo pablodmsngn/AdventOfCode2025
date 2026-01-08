@@ -28,7 +28,6 @@ public class Dia11BTest {
         """;
 
     @Test
-    @DisplayName("Ejemplo Parte 2: Rutas pasando por dac y fft")
     public void testEjemploParte2() {
         var inputStream = new ByteArrayInputStream(INPUT_EJEMPLO.getBytes(StandardCharsets.UTF_8));
         ControladorReactor controlador = CargadorEntrada.cargar(inputStream);

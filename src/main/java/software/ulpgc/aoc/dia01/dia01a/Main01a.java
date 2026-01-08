@@ -9,6 +9,7 @@ public class Main01a {
     public static void main(String[] args) {
         // Inyectamos la Estrategia A
         CajaFuerte safe = new CajaFuerte(ProtocolosSeguridad.PART_A);
+        //ProtocolosSeguridad protocolosSeguridad = new ProtocolosSeguridad();
 
         CargadorEntrada.process("dia01input", safe);
 
