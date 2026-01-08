@@ -29,7 +29,6 @@ En la primera fase, el objetivo era procesar un inventario de ingredientes separ
 
 
 
----
 
 ### Parte 2: Optimización Algorítmica y Fusión de Intervalos
 
