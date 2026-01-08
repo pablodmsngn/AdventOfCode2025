@@ -8,7 +8,6 @@ public class Dia01BTest {
 
     @Test
     public void testMultiplesVueltas() {
-
         CajaFuerte caja = new CajaFuerte(ProtocolosSeguridad.PART_B);
         caja.rotar("R1000");
         assertEquals(10, caja.getVecesCero());
