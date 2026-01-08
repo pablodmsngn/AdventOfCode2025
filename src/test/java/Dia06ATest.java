@@ -34,6 +34,7 @@ public class Dia06ATest {
                 .mapToLong(Operacion::calcular)
                 .toArray();
         assertArrayEquals(new long[] {270, 162, 83205, 337}, resultados);
+
     }
 
     @Test
