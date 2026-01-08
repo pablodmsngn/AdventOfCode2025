@@ -28,10 +28,7 @@ public class Dia11ATest {
     public void testEjemplo() {
         var inputStream = new ByteArrayInputStream(INPUT_EJEMPLO.getBytes(StandardCharsets.UTF_8));
         ControladorReactor controlador = CargadorEntrada.cargar(inputStream);
-
         long resultado = controlador.contarRutasTotales();
-
-        // El enunciado lista 5 rutas posibles
         assertEquals(5L, resultado);
     }
 }

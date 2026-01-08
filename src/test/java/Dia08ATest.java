@@ -35,15 +35,10 @@ public class Dia08ATest {
 
     @Test
     public void test_ejemplo_enunciado() {
-        // En el ejemplo, se realizan las 10 conexiones más cortas
         long conexionesAProbar = 10;
-
         var inputStream = new ByteArrayInputStream(INPUT_EJEMPLO.getBytes(StandardCharsets.UTF_8));
         ControladorLuces controlador = CargadorEntrada.cargar(inputStream);
-
         long resultado = controlador.ejecutar(conexionesAProbar);
-
-        // El enunciado dice: "Al multiplicar los tamaños de los tres circuitos más grandes (5, 4 y uno de tamaño 2), se obtiene 40."
         assertEquals(40L, resultado);
     }
 }

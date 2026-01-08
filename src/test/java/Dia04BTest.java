@@ -26,7 +26,7 @@ public class Dia04BTest {
                 @.@.@@@.@.
                 """;
 
-        // Usamos SolucionadorImprentaB para la Parte 2 (Simulación)
+
         Ejecutador solucionador = new SolucionadorImprentaB(
                 new ByteArrayInputStream(input.getBytes(StandardCharsets.UTF_8))
         );
@@ -39,11 +39,7 @@ public class Dia04BTest {
     @Test
     @DisplayName("Caso Lógico: Desbloqueo Progresivo")
     void testDesbloqueoProgresivo() {
-        //   . @ .
-        //   @ @ @
-        //   . @ .
-        // El centro está bloqueado inicialmente (4 vecinos).
-        // Al retirar los 4 vecinos de las puntas, el centro se libera.
+
         String input = """
                 .@.
                 @@@
@@ -54,7 +50,6 @@ public class Dia04BTest {
                 new ByteArrayInputStream(input.getBytes(StandardCharsets.UTF_8))
         );
 
-        // 4 exteriores + 1 central liberado después = 5 total
         assertEquals(5, solucionador.ejecutar());
     }
 }

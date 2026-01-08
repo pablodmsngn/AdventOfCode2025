@@ -29,17 +29,10 @@ public class Dia07BTest {
 
     @Test
     public void testLineasTemporalesEjemplo() {
-        // 1. Construimos la rejilla
         ConstructorRejilla builder = new ConstructorRejilla();
         INPUT_EJEMPLO.lines().forEach(builder::agregarLinea);
-
-        // 2. Inicializamos el controlador
         ControladorLaboratorio controlador = new ControladorLaboratorio(builder.construir());
-
-        // 3. Ejecutamos la lógica de la Parte 2
         long resultado = controlador.contarLineasTemporales();
-
-        // 4. Verificamos el resultado (40 es el valor oficial del ejemplo)
         assertEquals(40L, resultado, "El total de líneas temporales debería ser 40");
     }
 }

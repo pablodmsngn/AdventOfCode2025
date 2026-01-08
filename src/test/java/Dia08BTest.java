@@ -40,10 +40,7 @@ public class Dia08BTest {
     public void test_ejemplo_unificacion() {
         var inputStream = new ByteArrayInputStream(INPUT_EJEMPLO.getBytes(StandardCharsets.UTF_8));
         ControladorLuces controlador = CargadorEntrada.cargar(inputStream);
-
         long resultado = controlador.ejecutarUnificacion();
-
-        // Según el enunciado: "multiplicar las coordenadas X de esas dos cajas de conexiones (216 y 117) da como resultado 25272"
         assertEquals(25272L, resultado);
     }
 }

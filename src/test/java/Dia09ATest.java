@@ -26,11 +26,7 @@ public class Dia09ATest {
     public void test_ejemplo_parte1() {
         var inputStream = new ByteArrayInputStream(INPUT_EJEMPLO.getBytes(StandardCharsets.UTF_8));
         ControladorCine controlador = CargadorEntrada.cargar(inputStream);
-
         long resultado = controlador.obtenerAreaMaxima();
-
-        // Según el enunciado: "el rectángulo más grande que puedes construir... tiene un área de 50"
-        // (Entre 2,5 y 11,1 -> Ancho 10, Alto 5 -> 50)
         assertEquals(50L, resultado);
     }
 }

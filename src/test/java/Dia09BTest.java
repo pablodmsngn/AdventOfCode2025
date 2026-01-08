@@ -28,10 +28,7 @@ public class Dia09BTest {
     public void test_ejemplo_parte2() {
         var inputStream = new ByteArrayInputStream(INPUT_EJEMPLO.getBytes(StandardCharsets.UTF_8));
         ControladorCine controlador = CargadorEntrada.cargar(inputStream);
-
         long resultado = controlador.obtenerAreaMaximaPermitida();
-
-        // El rectángulo válido más grande es entre 9,5 y 2,3 con área 24
         assertEquals(24L, resultado);
     }
 }

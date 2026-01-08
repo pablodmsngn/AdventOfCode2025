@@ -47,16 +47,9 @@ public class Dia12ATest {
 
     @Test
     public void testEjemploCompleto() {
-        // 1. Simulamos el fichero de entrada con un InputStream
         var inputStream = new ByteArrayInputStream(INPUT_EJEMPLO.getBytes(StandardCharsets.UTF_8));
-
-        // 2. Cargamos el controlador usando tu cargador existente
         ControladorGranja controlador = CargadorEntrada.cargar(inputStream);
-
-        // 3. Ejecutamos el conteo
         long resultado = controlador.contarRegionesValidas();
-
-        // 4. Verificamos que el resultado sea 2 (La primera y la segunda caben, la tercera no)
         assertEquals(2L, resultado, "El número de regiones válidas debería ser 2");
     }
 }

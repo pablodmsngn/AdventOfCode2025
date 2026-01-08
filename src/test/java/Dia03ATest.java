@@ -17,7 +17,6 @@ public class Dia03ATest {
     @DisplayName("Caso enunciado: Máximo al inicio (98...)")
     public void testEjemplo1() {
         String input = "987654321111111";
-        // Buscamos 2 dígitos
         long resultado = EstrategiasBusqueda.Greedy(input, 2);
         assertEquals(98L, resultado);
     }
@@ -26,7 +25,6 @@ public class Dia03ATest {
     @DisplayName("Caso enunciado: Máximo en extremos (8...9)")
     public void testEjemplo2() {
         String input = "811111111111119";
-        // 8 al principio, 9 al final -> 89
         long resultado = EstrategiasBusqueda.Greedy(input, 2);
         assertEquals(89L, resultado);
     }
@@ -35,7 +33,6 @@ public class Dia03ATest {
     @DisplayName("Caso enunciado: Máximo al final (...78)")
     public void testEjemplo3() {
         String input = "234234234234278";
-        // 7 y 8 al final -> 78
         long resultado = EstrategiasBusqueda.Greedy(input, 2);
         assertEquals(78L, resultado);
     }
@@ -44,7 +41,6 @@ public class Dia03ATest {
     @DisplayName("Caso enunciado: Máximo intercalado (9...2)")
     public void testEjemplo4() {
         String input = "818181911112111";
-        // Encuentra 9 (mayor d1 posible) y luego 2 (mayor d2 restante) -> 92
         long resultado = EstrategiasBusqueda.Greedy(input, 2);
         assertEquals(92L, resultado);
     }
@@ -52,18 +48,13 @@ public class Dia03ATest {
     @Test
     @DisplayName("Integración: Suma total de un controlador configurado para 2 dígitos")
     public void testIntegracionFase1() {
-        // Simulamos la lista de bancos
         List<BancoBaterias> bancos = List.of(
                 new BancoBaterias("987654321"), // da 98
                 new BancoBaterias("111111191")  // da 19 (1 al inicio, 9 al final)
         );
 
-        // Configuramos la estrategia para 2 dígitos
         ProtocoloEnergia planA = s -> EstrategiasBusqueda.Greedy(s, 2);
-
         ControladorEscalera controlador = new ControladorEscalera(bancos, planA);
-
-        // 98 + 19 = 117
         assertEquals(117L, controlador.activar());
     }
 }

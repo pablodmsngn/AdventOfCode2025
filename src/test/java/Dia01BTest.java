@@ -8,11 +8,8 @@ public class Dia01BTest {
 
     @Test
     public void testMultiplesVueltas() {
-        // Inyectamos la estrategia B (contar cruces)
-        CajaFuerte caja = new CajaFuerte(ProtocolosSeguridad.PART_B);
 
-        // Inicio 50. R1000 son 10 vueltas completas (1000/100 = 10).
-        // Pasa por el 0 diez veces.
+        CajaFuerte caja = new CajaFuerte(ProtocolosSeguridad.PART_B);
         caja.rotar("R1000");
         assertEquals(10, caja.getVecesCero());
     }
@@ -20,12 +17,8 @@ public class Dia01BTest {
     @Test
     public void testCruceDerecha() {
         CajaFuerte caja = new CajaFuerte(ProtocolosSeguridad.PART_B);
-
-        // 50 -> 90 (Avanza 40, no cruza el 0)
         caja.rotar("R40");
         assertEquals(0, caja.getVecesCero());
-
-        // 90 -> 10 (Avanza 20: 90..99..0..10. Cruza el 0)
         caja.rotar("R20");
         assertEquals(1, caja.getVecesCero());
     }
@@ -33,12 +26,8 @@ public class Dia01BTest {
     @Test
     public void testCruceIzquierda() {
         CajaFuerte caja = new CajaFuerte(ProtocolosSeguridad.PART_B);
-
-        // 50 -> 10 (Retrocede 40, no cruza el 0)
         caja.rotar("L40");
         assertEquals(0, caja.getVecesCero());
-
-        // 10 -> 90 (Retrocede 20: 10..0..99..90. Cruza el 0 hacia atrás)
         caja.rotar("L20");
         assertEquals(1, caja.getVecesCero());
     }
@@ -46,7 +35,6 @@ public class Dia01BTest {
     @Test
     public void testAterrizajeExactoEnCero() {
         CajaFuerte caja = new CajaFuerte(ProtocolosSeguridad.PART_B);
-        // 50 -> 0 (Cuenta como 1 toque/cruce)
         caja.rotar("R50");
         assertEquals(1, caja.getVecesCero());
     }
@@ -60,8 +48,6 @@ public class Dia01BTest {
         };
 
         for (String entrada : entradas) caja.rotar(entrada);
-
-        // Según el enunciado, para la parte B la contraseña es 6
         assertEquals(6, caja.getVecesCero());
     }
 }

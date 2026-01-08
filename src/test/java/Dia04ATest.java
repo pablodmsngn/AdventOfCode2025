@@ -25,20 +25,16 @@ public class Dia04ATest {
                 @.@.@@@.@.
                 """;
 
-        // Usamos SolucionadorImprentaA para la Parte 1
         Ejecutador solucionador = new SolucionadorImprentaA(
                 new ByteArrayInputStream(input.getBytes(StandardCharsets.UTF_8))
         );
-
         long resultado = solucionador.ejecutar();
-
         assertEquals(13, resultado);
     }
 
     @Test
     @DisplayName("Caso Borde: Mapa pequeño totalmente bloqueado")
     void testMapaBloqueado() {
-        // El centro (1,1) está rodeado por 8 rollos -> Bloqueado.
         String input = """
                 @@@
                 @@@
@@ -48,8 +44,6 @@ public class Dia04ATest {
         Ejecutador solucionador = new SolucionadorImprentaA(
                 new ByteArrayInputStream(input.getBytes(StandardCharsets.UTF_8))
         );
-
-        // 9 rollos en total - 1 bloqueado en el centro = 8 accesibles
         assertEquals(4, solucionador.ejecutar());
     }
 }

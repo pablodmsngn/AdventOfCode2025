@@ -1,4 +1,4 @@
-import org.junit.jupiter.api.DisplayName;
+
 import org.junit.jupiter.api.Test;
 import software.ulpgc.aoc.dia11.CargadorEntrada;
 import software.ulpgc.aoc.dia11.ControladorReactor;
@@ -33,10 +33,6 @@ public class Dia11BTest {
         ControladorReactor controlador = CargadorEntrada.cargar(inputStream);
 
         long resultado = controlador.contarRutasCriticas();
-
-        // svr -> aaa -> fft -> ccc -> eee -> dac -> fff -> ggg -> out
-        // svr -> aaa -> fft -> ccc -> eee -> dac -> fff -> hhh -> out
-        // Total = 2
         assertEquals(2L, resultado);
     }
 }

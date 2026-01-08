@@ -17,7 +17,6 @@ public class Dia05ATest {
     @DisplayName("Rango: Verificar si un número está dentro")
     public void testRangoContiene() {
         Rango rango = new Rango(10, 20);
-
         assertAll("Límites y valores internos",
                 () -> assertTrue(rango.contiene(10), "Debe incluir el límite inferior"),
                 () -> assertTrue(rango.contiene(20), "Debe incluir el límite superior"),
@@ -31,20 +30,13 @@ public class Dia05ATest {
     @Test
     @DisplayName("Auditor: Contar ingredientes frescos usando estrategia")
     public void testAuditoriaParte1() {
-        // Escenario:
-        // Rango válido: 5-10
-        // IDs a probar: 1 (Mal), 5 (Bien), 8 (Bien), 11 (Mal)
+
         List<Rango> rangos = List.of(new Rango(5, 10));
         List<Long> ids = List.of(1L, 5L, 8L, 11L);
-
-        // Estrategia: Es fresco si está en algún rango
         ProtocoloFrescura protocolo = (id, listaRangos) ->
                 listaRangos.stream().anyMatch(r -> r.contiene(id));
-
         AuditorInventario auditor = new AuditorInventario(rangos, ids, protocolo);
-
         long resultado = auditor.auditar();
-
         assertEquals(2, resultado, "Debería encontrar exactamente 2 ingredientes frescos (5 y 8)");
     }
 }

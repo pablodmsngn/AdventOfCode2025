@@ -7,7 +7,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class Dia07ATest {
 
-    // Entrada del ejemplo oficial del enunciado
     private final String INPUT_EJEMPLO = """
         .......S.......
         ...............
@@ -28,19 +27,11 @@ public class Dia07ATest {
         """;
 
     @Test
-
     public void testDivisionesEjemplo() {
-        // 1. Construimos la rejilla usando el Builder y el String de ejemplo
         ConstructorRejilla builder = new ConstructorRejilla();
         INPUT_EJEMPLO.lines().forEach(builder::agregarLinea);
-
-        // 2. Inicializamos el controlador con la rejilla construida
         ControladorLaboratorio controlador = new ControladorLaboratorio(builder.construir());
-
-        // 3. Ejecutamos la lógica de la Parte 1
         int resultado = controlador.contarDivisiones();
-
-        // 4. Verificamos el resultado (21 es el valor oficial del ejemplo)
         assertEquals(21, resultado, "El número de divisiones debería ser 21");
     }
 }
