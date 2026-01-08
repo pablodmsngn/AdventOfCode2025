@@ -4,12 +4,12 @@ import org.junit.jupiter.api.Test;
 import java.util.stream.Stream;
 import static org.junit.jupiter.api.Assertions.*;
 
-@DisplayName("Día 2 - Fase 1: Identificadores repetidos exactamente 2 veces")
+
 public class Dia02ATest {
 
     @Test
     @DisplayName("La estrategia A debe detectar patrones repetidos exactamente 2 veces")
-    void testEstrategiaA() {
+    public void testEstrategiaA() {
         // IDs Inválidos (Cumplen el patrón repetido 2 veces) -> La validación retorna FALSE (porque falla la regla de tienda)
         // negate() en el código invierte esto, así que aquí probamos el predicado directo.
 
@@ -22,7 +22,7 @@ public class Dia02ATest {
 
     @Test
     @DisplayName("La estrategia A debe ignorar patrones repetidos 3 o más veces")
-    void testEstrategiaAIgnoraMultiples() {
+    public void testEstrategiaAIgnoraMultiples() {
         // 123123123 -> 3 veces. Para la Fase 1, esto es un ID válido (TRUE).
         assertTrue(EstrategiasValidacion.PATRON_A.test(123123123), "123123123 debería ser válido en Fase 1");
 
@@ -32,7 +32,7 @@ public class Dia02ATest {
 
     @Test
     @DisplayName("RangoID debe filtrar correctamente los IDs inválidos")
-    void testRangoID() {
+    public void testRangoID() {
         // Rango 10-12.
         // 10: Válido
         // 11: Inválido (1-1)
@@ -47,7 +47,7 @@ public class Dia02ATest {
 
     @Test
     @DisplayName("Motor debe sumar correctamente los IDs inválidos")
-    void testMotorIntegracion() {
+    public void testMotorIntegracion() {
         // Creamos un stream de rangos simulado
         RangoID rango1 = new RangoID("10-12"); // Contiene 11 (Inválido)
         RangoID rango2 = new RangoID("20-22"); // Contiene 22 (Inválido)

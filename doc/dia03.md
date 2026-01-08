@@ -22,7 +22,7 @@ En la primera fase, el objetivo era procesar secuencias de dígitos (bancos de b
 * **Código Expresivo:**
   Gracias al Builder, en el `Main` podemos leer: `.desde(input).usando(planA).construir()`. Esto convierte la configuración técnica en una frase legible, facilitando la comprensión del flujo de datos .
 
----
+
 
 ### Parte 2: La Extensión y la Generalización
 

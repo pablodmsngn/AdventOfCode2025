@@ -9,12 +9,12 @@ import software.ulpgc.aoc.dia03.ProtocoloEnergia;
 import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-@DisplayName("Día 3 - Fase 2: Sacudida con 12 Baterías")
+
 public class Dia03BTest {
 
     @Test
     @DisplayName("Validar soporte de tipos grandes (Long Overflow check)")
-    void testSoporteLong() {
+    public void testSoporteLong() {
         // Un número de 12 dígitos NO cabe en un int.
         // Si el código usa int internamente, esto fallará o dará negativo.
         String input = "999999999999"; // 12 nueves
@@ -27,7 +27,7 @@ public class Dia03BTest {
 
     @Test
     @DisplayName("Validar lógica Greedy con 12 dígitos")
-    void testLogicaGreedy12() {
+    public void testLogicaGreedy12() {
         // Cadena: Un '1' seguido de doce '9's. Total 13 caracteres.
         // Input: "1999999999999"
 
@@ -43,7 +43,7 @@ public class Dia03BTest {
 
     @Test
     @DisplayName("Integración: Suma total de un controlador configurado para 12 dígitos")
-    void testIntegracionFase2() {
+    public void testIntegracionFase2() {
         List<BancoBaterias> bancos = List.of(
                 new BancoBaterias("999999999999"), // 12 nueves
                 new BancoBaterias("888888888888")  // 12 ochos

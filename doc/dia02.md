@@ -29,7 +29,7 @@ En la primera fase, establecimos una arquitectura modular para procesar rangos d
 
 
 
----
+
 
 ### Parte 2: La Extensión y el Cambio de Reglas
 

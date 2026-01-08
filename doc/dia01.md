@@ -18,7 +18,6 @@ En la primera fase, construimos los cimientos del sistema. El objetivo era que l
 * **Patrón Iterator :**
   En `CargadorEntrada`, usamos `Stream` de Java (`Files.lines`), que es una implementación moderna del patrón Iterator. Esto permite acceder secuencialmente a los elementos sin exponer su representación subyacente , procesando el archivo línea por línea de manera eficiente.
 
----
 
 ### Parte 2: La Extensión y el Cambio de Reglas
 En la segunda fase, el requerimiento cambió radicalmente: había que usar una nueva fórmula matemática ("método 0x434C49434B") sin romper lo que ya funcionaba.

@@ -7,7 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class Dia01BTest {
 
     @Test
-    void testMultiplesVueltas() {
+    public void testMultiplesVueltas() {
         // Inyectamos la estrategia B (contar cruces)
         CajaFuerte caja = new CajaFuerte(ProtocolosSeguridad.PART_B);
 
@@ -18,7 +18,7 @@ public class Dia01BTest {
     }
 
     @Test
-    void testCruceDerecha() {
+    public void testCruceDerecha() {
         CajaFuerte caja = new CajaFuerte(ProtocolosSeguridad.PART_B);
 
         // 50 -> 90 (Avanza 40, no cruza el 0)
@@ -31,7 +31,7 @@ public class Dia01BTest {
     }
 
     @Test
-    void testCruceIzquierda() {
+    public void testCruceIzquierda() {
         CajaFuerte caja = new CajaFuerte(ProtocolosSeguridad.PART_B);
 
         // 50 -> 10 (Retrocede 40, no cruza el 0)
@@ -44,7 +44,7 @@ public class Dia01BTest {
     }
 
     @Test
-    void testAterrizajeExactoEnCero() {
+    public void testAterrizajeExactoEnCero() {
         CajaFuerte caja = new CajaFuerte(ProtocolosSeguridad.PART_B);
         // 50 -> 0 (Cuenta como 1 toque/cruce)
         caja.rotar("R50");
@@ -52,7 +52,7 @@ public class Dia01BTest {
     }
 
     @Test
-    void testAceptacionParteB() {
+    public void testAceptacionParteB() {
         CajaFuerte caja = new CajaFuerte(ProtocolosSeguridad.PART_B);
         String[] entradas = {
                 "L68", "L30", "R48", "L5", "R60",

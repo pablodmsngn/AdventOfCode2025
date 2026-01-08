@@ -10,12 +10,12 @@ import software.ulpgc.aoc.dia03.ProtocoloEnergia;
 import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-@DisplayName("Día 3 - Fase 1: Sacudida con 2 Baterías")
+
 public class Dia03ATest {
 
     @Test
     @DisplayName("Caso enunciado: Máximo al inicio (98...)")
-    void testEjemplo1() {
+    public void testEjemplo1() {
         String input = "987654321111111";
         // Buscamos 2 dígitos
         long resultado = EstrategiasBusqueda.Greedy(input, 2);
@@ -24,7 +24,7 @@ public class Dia03ATest {
 
     @Test
     @DisplayName("Caso enunciado: Máximo en extremos (8...9)")
-    void testEjemplo2() {
+    public void testEjemplo2() {
         String input = "811111111111119";
         // 8 al principio, 9 al final -> 89
         long resultado = EstrategiasBusqueda.Greedy(input, 2);
@@ -33,7 +33,7 @@ public class Dia03ATest {
 
     @Test
     @DisplayName("Caso enunciado: Máximo al final (...78)")
-    void testEjemplo3() {
+    public void testEjemplo3() {
         String input = "234234234234278";
         // 7 y 8 al final -> 78
         long resultado = EstrategiasBusqueda.Greedy(input, 2);
@@ -42,7 +42,7 @@ public class Dia03ATest {
 
     @Test
     @DisplayName("Caso enunciado: Máximo intercalado (9...2)")
-    void testEjemplo4() {
+    public void testEjemplo4() {
         String input = "818181911112111";
         // Encuentra 9 (mayor d1 posible) y luego 2 (mayor d2 restante) -> 92
         long resultado = EstrategiasBusqueda.Greedy(input, 2);
@@ -51,7 +51,7 @@ public class Dia03ATest {
 
     @Test
     @DisplayName("Integración: Suma total de un controlador configurado para 2 dígitos")
-    void testIntegracionFase1() {
+    public void testIntegracionFase1() {
         // Simulamos la lista de bancos
         List<BancoBaterias> bancos = List.of(
                 new BancoBaterias("987654321"), // da 98

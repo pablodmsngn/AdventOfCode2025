@@ -8,7 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class Dia01ATest {
 
     @Test
-    void testRobustez() {
+    public void testRobustez() {
         // Inyectamos la estrategia A
         CajaFuerte caja = new CajaFuerte(ProtocolosSeguridad.PART_A);
 
@@ -21,13 +21,13 @@ public class Dia01ATest {
     }
 
     @Test
-    void testEstadoInicial() {
+    public void testEstadoInicial() {
         CajaFuerte caja = new CajaFuerte(ProtocolosSeguridad.PART_A);
         assertEquals(0, caja.getVecesCero());
     }
 
     @Test
-    void testParadaEnCero() {
+    public void testParadaEnCero() {
         CajaFuerte caja = new CajaFuerte(ProtocolosSeguridad.PART_A);
         // Inicio 50 -> R50 -> Termina en 0 (Cuenta)
         caja.rotar("R50");
@@ -35,7 +35,7 @@ public class Dia01ATest {
     }
 
     @Test
-    void testPasoPorCeroIgnorado() {
+    public void testPasoPorCeroIgnorado() {
         CajaFuerte caja = new CajaFuerte(ProtocolosSeguridad.PART_A);
         // Inicio 50 -> R60 -> Termina en 10 (Cruzó el 0, pero no paró ahí)
         caja.rotar("R60");
@@ -43,7 +43,7 @@ public class Dia01ATest {
     }
 
     @Test
-    void testAceptacionParteA() {
+    public void testAceptacionParteA() {
         CajaFuerte caja = new CajaFuerte(ProtocolosSeguridad.PART_A);
         String[] entradas = {
                 "L68", "L30", "R48", "L5", "R60",
