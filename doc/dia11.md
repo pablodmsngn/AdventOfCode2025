@@ -1,5 +1,3 @@
-
-
 ### Parte 1: Grafos Acíclicos y Programación Dinámica (Memoización)
 
 En la primera fase, el problema consistía en encontrar el número total de caminos distintos desde un nodo de origen ("you" o "svr") hasta un nodo destino ("out") en una red de dispositivos. Dado que los datos "no fluyen en sentido inverso", identificamos la estructura como un **Grafo Acíclico Dirigido (DAG)**. El reto principal era evitar la explosión combinatoria de recalcular las mismas ramas múltiples veces.

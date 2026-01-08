@@ -9,7 +9,6 @@ public class Main05A {
 
     public static void main(String[] args) {
 
-        // Definimos CÓMO saber si es fresco: "Si está contenido en alguno de los rangos"
         ProtocoloFrescura politicaEstandar = (id, rangos) ->
                 rangos.stream().anyMatch(rango -> rango.contiene(id));
 
