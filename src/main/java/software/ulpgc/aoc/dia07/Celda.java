@@ -16,18 +16,18 @@ public record Celda(TipoCelda tipo, long intensidad) {
         return new Celda(TipoCelda.HAZ, intensidad);
     }
 
-    // Constructor estático simple para el haz inicial (intensidad 1)
+
     public static Celda haz() {
         return new Celda(TipoCelda.HAZ, 1);
     }
 
     public static Celda desdeCaracter(char c) {
         if (c == '^') return divisor();
-        if (c == 'S') return haz(); // El punto de partida S es un Haz
+        if (c == 'S') return haz();
         return vacia();
     }
 
-    public boolean esVacia() { return tipo == TipoCelda.VACIO; }
+
     public boolean esDivisor() { return tipo == TipoCelda.DIVISOR; }
     public boolean esHaz() { return tipo == TipoCelda.HAZ; }
 }

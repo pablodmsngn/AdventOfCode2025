@@ -11,7 +11,6 @@ public class CargadorEntrada {
         if (inputStream == null) {
             throw new RuntimeException("Fichero no encontrado: " + filename);
         }
-
         return new ConstructorAuditoria()
                 .desde(inputStream)
                 .usando(protocolo)

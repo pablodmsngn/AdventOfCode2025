@@ -1,5 +1,4 @@
 package software.ulpgc.aoc.dia12;
-
 import java.util.List;
 
 public class ControladorGranja {
@@ -10,14 +9,12 @@ public class ControladorGranja {
     }
 
     public long contarRegionesValidas() {
-        // Eliminado .parallel() para evitar OutOfMemoryError
-        // La optimización interna de FastSolver (usando 'long') compensa la pérdida de hilos.
         return problemas.stream()
                 .filter(this::esSoluble)
                 .count();
     }
 
-    private boolean esSoluble(DefinicionProblema problema) {
-        return new SolucionadorGranja().resolver(problema.ancho(), problema.alto(), problema.piezas());
+    private boolean esSoluble(DefinicionProblema p) {
+        return new SolucionadorGranja().resolver(p.region(), p.piezas());
     }
 }

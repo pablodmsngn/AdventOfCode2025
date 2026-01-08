@@ -7,16 +7,9 @@ import java.util.function.LongPredicate;
 
 public class Main02b {
     public static void main(String[] args) {
-        // 1. Definir la Estrategia (La regla de negocio)
-        // Buscamos IDs que NO cumplan el patrón repetido (ej: 123123 es inválido)
+
         LongPredicate estrategia = EstrategiasValidacion.PATRON_B;
-
-        // 2. Uso de tu CargadorEntrada (Infraestructura)
-        // Delegamos la lectura y construcción al cargador estático.
-        // Asegúrate de que "Day02Input.txt" esté en la carpeta resources.
         Motor motor = CargadorEntrada.cargar("dia02input", estrategia);
-
-        // 3. Ejecución (Motor)
         long resultado = motor.run();
 
         System.out.println("--- RESULTADO DÍA 2 ---");

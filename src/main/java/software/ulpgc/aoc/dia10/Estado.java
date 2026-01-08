@@ -11,7 +11,6 @@ public enum Estado {
     }
 
     public static List<Estado> parsear(String str) {
-        // Formato esperado: [.##.] -> quitamos corchetes y mapeamos
         return str.substring(1, str.length() - 1)
                 .chars()
                 .mapToObj(c -> deCaracter((char) c))

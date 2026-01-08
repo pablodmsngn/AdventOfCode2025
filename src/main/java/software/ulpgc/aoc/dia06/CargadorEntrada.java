@@ -16,10 +16,7 @@ public class CargadorEntrada {
         }
 
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
-            // Leemos todas las líneas y se las pasamos al constructor/analizador
             reader.lines().forEach(constructor::agregarLinea);
-
-            // Construimos el controlador con el resultado del análisis
             return new ControladorCompactador(constructor.construir());
 
         } catch (IOException e) {

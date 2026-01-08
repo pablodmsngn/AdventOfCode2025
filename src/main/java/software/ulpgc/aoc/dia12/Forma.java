@@ -1,9 +1,6 @@
 package software.ulpgc.aoc.dia12;
 
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public record Forma(int id, List<Coordenada> puntos) {
 
@@ -13,8 +10,9 @@ public record Forma(int id, List<Coordenada> puntos) {
 
     public List<Forma> generarVariaciones() {
         Set<List<Coordenada>> unicos = new HashSet<>();
-
         Forma actual = this;
+
+        // Generamos las 8 isometrías
         for (int i = 0; i < 2; i++) {
             for (int j = 0; j < 4; j++) {
                 unicos.add(actual.normalizar());

@@ -1,5 +1,10 @@
-package software.ulpgc.aoc.dia04;
+package software.ulpgc.aoc.dia04.b;
 
+
+import software.ulpgc.aoc.dia04.Coordenada;
+import software.ulpgc.aoc.dia04.CuadriculaAlmacen;
+import software.ulpgc.aoc.dia04.Ejecutador;
+import software.ulpgc.aoc.dia04.OptimizadorMontacargas;
 
 import java.io.BufferedReader;
 import java.io.InputStream;
@@ -15,37 +20,22 @@ public class SolucionadorImprentaB implements Ejecutador {
 
     @Override
     public long ejecutar() {
-        // 1. Cargar estado inicial
         List<String> lineas = new BufferedReader(new InputStreamReader(entrada))
                 .lines()
                 .toList();
-
         CuadriculaAlmacen almacen = CuadriculaAlmacen.desde(lineas);
-
         long totalRetirados = 0;
         boolean hayCambios = true;
-
-        // 2. Bucle de simulación
         while (hayCambios) {
-            // Analizar el estado actual
             OptimizadorMontacargas optimizador = new OptimizadorMontacargas(almacen);
-
-            // Obtener lista de lo que podemos sacar AHORA
             List<Coordenada> rollosAccesibles = optimizador.obtenerUbicacionesAccesibles().toList();
-
             if (rollosAccesibles.isEmpty()) {
-                hayCambios = false; // Condición de parada
+                hayCambios = false;
             } else {
-                // Sumar al total
                 totalRetirados += rollosAccesibles.size();
-
-                // Actualizar el almacén retirando esos rollos (Genera nuevo estado)
                 almacen = almacen.retirarRollos(rollosAccesibles);
-
-                // El bucle se repite con el 'almacen' actualizado
             }
         }
-
         return totalRetirados;
     }
 }

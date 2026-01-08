@@ -6,7 +6,6 @@ import software.ulpgc.aoc.dia09.ControladorCine;
 
 public class Main09B {
     public static void main(String[] args) {
-        // Asegúrate de tener 'Day09Input.txt'
         ControladorCine cine = CargadorEntrada.cargar("dia09input");
 
         System.out.println("--- DÍA 9 PARTE 2: CINE ---");

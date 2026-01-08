@@ -15,61 +15,55 @@ public class CargadorEntrada {
 
     public static ControladorGranja cargar(InputStream entrada) {
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(entrada))) {
-            List<String> lineas = reader.lines().toList();
-            return procesar(lineas);
+            return procesar(reader.lines().toList());
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
     private static ControladorGranja procesar(List<String> lineas) {
-        Map<Integer, Forma> catalogoFormas = new HashMap<>();
+        Map<Integer, Forma> catalogo = new HashMap<>();
         List<DefinicionProblema> problemas = new ArrayList<>();
 
-        boolean leyendoFormas = true;
         int idActual = -1;
-        List<Coordenada> puntosActuales = new ArrayList<>();
-        int filaForma = 0;
+        List<String> bufferForma = new ArrayList<>();
 
         for (String linea : lineas) {
             if (linea.isBlank()) continue;
 
-            if (Character.isDigit(linea.charAt(0)) && linea.contains(":")) {
-                if (linea.contains("x")) { // Cambio a sección de regiones
-                    if (leyendoFormas && idActual != -1) {
-                        catalogoFormas.put(idActual, new Forma(idActual, new ArrayList<>(puntosActuales)));
-                        idActual = -1;
-                        puntosActuales.clear();
-                    }
-                    leyendoFormas = false;
-                } else { // Nueva forma
-                    if (idActual != -1) {
-                        catalogoFormas.put(idActual, new Forma(idActual, new ArrayList<>(puntosActuales)));
-                    }
-                    idActual = Integer.parseInt(linea.replace(":", "").trim());
-                    puntosActuales.clear();
-                    filaForma = 0;
-                    continue;
+            if (linea.contains(":")) {
+                if (idActual != -1 && !bufferForma.isEmpty()) {
+                    catalogo.put(idActual, crearForma(idActual, bufferForma));
+                    bufferForma.clear();
                 }
-            }
 
-            if (leyendoFormas) {
-                for (int c = 0; c < linea.length(); c++) {
-                    if (linea.charAt(c) == '#') {
-                        puntosActuales.add(new Coordenada(filaForma, c));
-                    }
+                if (linea.contains("x")) {
+                    idActual = -1;
+                    problemas.add(parsearProblema(linea, catalogo));
+                } else {
+                    idActual = Integer.parseInt(linea.replace(":", "").trim());
                 }
-                filaForma++;
-            } else {
-                problemas.add(parsearProblema(linea, catalogoFormas));
+            } else if (idActual != -1) {
+                bufferForma.add(linea);
             }
         }
 
-        if (leyendoFormas && idActual != -1) {
-            catalogoFormas.put(idActual, new Forma(idActual, new ArrayList<>(puntosActuales)));
+        if (idActual != -1 && !bufferForma.isEmpty()) {
+            catalogo.put(idActual, crearForma(idActual, bufferForma));
         }
 
         return new ControladorGranja(problemas);
+    }
+
+    private static Forma crearForma(int id, List<String> filas) {
+        List<Coordenada> puntos = new ArrayList<>();
+        for (int r = 0; r < filas.size(); r++) {
+            String fila = filas.get(r);
+            for (int c = 0; c < fila.length(); c++) {
+                if (fila.charAt(c) == '#') puntos.add(new Coordenada(r, c));
+            }
+        }
+        return new Forma(id, puntos);
     }
 
     private static DefinicionProblema parsearProblema(String linea, Map<Integer, Forma> catalogo) {
@@ -78,21 +72,18 @@ public class CargadorEntrada {
         int w = Integer.parseInt(dims[0]);
         int h = Integer.parseInt(dims[1]);
 
-        String[] cuentas = partes[1].trim().split("\\s+");
         List<Forma> piezas = new ArrayList<>();
+        String[] cuentas = partes[1].trim().split("\\s+");
 
         for (int i = 0; i < cuentas.length; i++) {
             if (cuentas[i].isBlank()) continue;
             int cantidad = Integer.parseInt(cuentas[i]);
-
             if (cantidad > 0) {
                 Forma prototipo = catalogo.get(i);
-                if (prototipo == null) throw new RuntimeException("Forma ID=" + i + " no encontrada.");
-                for (int k = 0; k < cantidad; k++) {
-                    piezas.add(prototipo);
-                }
+                if (prototipo == null) throw new RuntimeException("Error: La forma ID=" + i + " no ha sido definida antes de usarse.");
+                for (int k = 0; k < cantidad; k++) piezas.add(prototipo);
             }
         }
-        return new DefinicionProblema(w, h, piezas);
+        return new DefinicionProblema(new Region(w, h), piezas);
     }
 }

@@ -10,9 +10,7 @@ public class Main05B {
 
         ProtocoloFrescura dummy = (id, rangos) -> false;
 
-
         AuditorInventario auditor = CargadorEntrada.cargar("dia05input", dummy);
-
 
         long totalFrescos = auditor.calcularCoberturaTotal();
 

@@ -27,25 +27,19 @@ public class ConstructorAuditoria {
     public AuditorInventario construir() {
         List<Rango> rangos = new ArrayList<>();
         List<Long> ids = new ArrayList<>();
-
         boolean leyendoRangos = true;
-
         for (String linea : lineas) {
             linea = linea.trim();
-
-            // Si la línea está vacía, cambiamos de sección
             if (linea.isEmpty()) {
                 leyendoRangos = false;
                 continue;
             }
-
             if (leyendoRangos) {
                 rangos.add(Rango.desdeTexto(linea));
             } else {
                 ids.add(Long.parseLong(linea));
             }
         }
-
         return new AuditorInventario(rangos, ids, protocolo);
     }
 }

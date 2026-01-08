@@ -22,18 +22,14 @@ public class ConstructorMotor {
     }
 
     public Motor runner() {
-        // Validaciones defensivas
         if (file == null) throw new IllegalStateException("Falta configurar la fuente de datos (FROM)");
         if (validator == null) throw new IllegalStateException("Falta configurar la estrategia (USE)");
-
-        // Lógica de parseo (movida aquí para liberar al Runner de detalles de I/O)
         Stream<RangoID> rangos = new BufferedReader(new InputStreamReader(file))
                 .lines()
                 .flatMap(line -> Arrays.stream(line.split(",")))
                 .map(String::trim)
                 .filter(s -> !s.isEmpty())
                 .map(RangoID::new);
-
         return new Motor(rangos, validator);
     }
 }

@@ -1,7 +1,7 @@
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import software.ulpgc.aoc.dia04.Ejecutador;
-import software.ulpgc.aoc.dia04.SolucionadorImprentaB;
+import software.ulpgc.aoc.dia04.b.SolucionadorImprentaB;
 
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;

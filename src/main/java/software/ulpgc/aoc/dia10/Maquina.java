@@ -22,8 +22,6 @@ public record Maquina(Indicador objetivo, List<Boton> botones) {
         }
 
         Indicador indicadorParidad = convertirVoltajeALuces(objetivo);
-
-        // Usamos la misma lista de botones de la instancia
         Maquina maquinaIntermedia = new Maquina(indicadorParidad, botones);
         List<Set<Boton>> solucionesParidad = maquinaIntermedia.buscarSolucionesLuces(indicadorParidad);
 
@@ -52,35 +50,26 @@ public record Maquina(Indicador objetivo, List<Boton> botones) {
         return minCoste;
     }
 
-    //BFS OPTIMIZADO CON MaSCARA DE BITS
+
     private List<Set<Boton>> buscarSolucionesLuces(Indicador target) {
         List<Set<Boton>> soluciones = new ArrayList<>();
-        // Usamos Long para representar el conjunto de botones (bit = 1 -> pulsado)
-        // Esto es mucho más rápido que Set<Set<Boton>>
         Set<Long> visitados = new HashSet<>();
         Queue<Long> cola = new ArrayDeque<>();
 
-        // Estado inicial: máscara 0 (ningún botón)
         cola.add(0L);
         visitados.add(0L);
 
-        // Pre-calculamos el estado inicial de luces para evitar creaciones constantes
         Indicador base = target.crearEstadoInicial();
         List<Estado> targetEstados = target.estados();
 
         while (!cola.isEmpty()) {
             long mask = cola.poll();
 
-            // Calculamos el estado de luces para esta máscara
-            // Solo nos interesan las luces (estados), no los voltajes aquí
             if (calcularSoloEstados(base, mask).equals(targetEstados)) {
                 soluciones.add(convertirMascaraASet(mask));
             }
 
-            // Generamos hijos
             for (int i = 0; i < botones.size(); i++) {
-                // Si el botón ya está en la máscara, no lo añadimos (evita ciclos simples)
-                // y evita redundancia porque el orden no importa en la suma
                 if ((mask & (1L << i)) != 0) continue;
 
                 long nuevaMask = mask | (1L << i);
@@ -93,14 +82,10 @@ public record Maquina(Indicador objetivo, List<Boton> botones) {
         return soluciones;
     }
 
-    // Metodo auxiliar optimizado para verificar solo luces
     private List<Estado> calcularSoloEstados(Indicador base, long mask) {
-        // Hacemos una copia mutable rápida o calculamos al vuelo
-        // Dado que Estado es inmutable, mapeamos los índices.
         return IntStream.range(0, base.estados().size())
                 .mapToObj(i -> {
                     boolean encendidoInicial = (base.estados().get(i) == Estado.ENCENDIDO);
-                    // Verificamos cuántos botones activos afectan a este índice 'i'
                     long toggleCount = 0;
                     for (int b = 0; b < botones.size(); b++) {
                         if ((mask & (1L << b)) != 0) { // Si el botón 'b' está pulsado
@@ -109,7 +94,6 @@ public record Maquina(Indicador objetivo, List<Boton> botones) {
                             }
                         }
                     }
-                    // Si es impar, cambiamos estado. Si es par, se queda igual.
                     boolean cambio = (toggleCount % 2 != 0);
                     boolean resultadoEncendido = cambio ? !encendidoInicial : encendidoInicial;
                     return resultadoEncendido ? Estado.ENCENDIDO : Estado.APAGADO;
@@ -126,7 +110,6 @@ public record Maquina(Indicador objetivo, List<Boton> botones) {
         }
         return set;
     }
-    // ------------------------------------------
 
     private Indicador convertirVoltajeALuces(Indicador ind) {
         List<Estado> nuevosEstados = IntStream.range(0, ind.estados().size())
@@ -140,7 +123,6 @@ public record Maquina(Indicador objetivo, List<Boton> botones) {
     }
 
     private Indicador aplicarBoton(Indicador estado, Boton boton) {
-        // Este metodo se usa en la recursión (menos frecuente), puede quedarse con Streams
         List<Estado> nuevosEstados = IntStream.range(0, estado.estados().size())
                 .mapToObj(i -> boton.indicesAfectados().contains(i)
                         ? estado.alternarEstado(i)

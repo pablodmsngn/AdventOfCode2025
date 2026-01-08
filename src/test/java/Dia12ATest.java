@@ -7,7 +7,6 @@ import java.nio.charset.StandardCharsets;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-
 public class Dia12ATest {
 
     private final String INPUT_EJEMPLO = """

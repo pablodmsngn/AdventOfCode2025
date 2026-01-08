@@ -10,10 +10,8 @@ public class Main03B {
 
         ProtocoloEnergia planB = secuencia -> EstrategiasBusqueda.Greedy(secuencia, 12);
 
-        // 2. CARGA (Usando la fachada)
         ControladorEscalera escalera = CargadorEntrada.cargar("dia03input", planB);
 
-        // 3. EJECUCIÓN
         long resultado = escalera.activar();
 
         System.out.println("--- RESULTADO DÍA 3 ---");

@@ -7,7 +7,6 @@ import java.util.stream.IntStream;
 public record Indicador(List<Estado> estados, List<Integer> voltajes) {
 
     public static Indicador inicial(int tamaño, int tamañoVoltajes) {
-        // Crea un indicador con apagagao y voltajes 0
         List<Estado> estadosApagados = IntStream.range(0, tamaño)
                 .mapToObj(i -> Estado.APAGADO)
                 .toList();
@@ -18,8 +17,6 @@ public record Indicador(List<Estado> estados, List<Integer> voltajes) {
         return new Indicador(estadosApagados, voltajesCero);
     }
     //PARTE2
-
-
     public Indicador crearEstadoInicial() {
         return inicial(estados.size(), voltajes.size());
     }
@@ -48,7 +45,6 @@ public record Indicador(List<Estado> estados, List<Integer> voltajes) {
     }
 
     private static List<Integer> parsearVoltajes(String str) {
-        // Formato: {3,5,4} -> quitamos llaves
         return Arrays.stream(str.substring(1, str.length() - 1).split(","))
                 .map(String::trim)
                 .map(Integer::parseInt)

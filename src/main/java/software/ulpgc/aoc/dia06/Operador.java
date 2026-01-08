@@ -14,7 +14,6 @@ public enum Operador implements BinaryOperator<Long> {
         return str.strip().equals("+") ? SUMAR : MULTIPLICAR;
     }
 
-    // Identidad para la reducción (0 para suma, 1 para multiplicación)
     public long identidad() {
         return this.equals(SUMAR) ? 0 : 1;
     }
@@ -23,8 +22,6 @@ public enum Operador implements BinaryOperator<Long> {
     public Long apply(Long a, Long b) {
         return this.equals(SUMAR) ? a + b : a * b;
     }
-    // Nueva lógica para la Parte 2: ¿Cómo alinear el bloque?
-    public boolean requiereAlineacionIzquierda() {
-        return this.equals(SUMAR);
-    }
+
+
 }

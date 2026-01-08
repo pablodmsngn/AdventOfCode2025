@@ -17,9 +17,7 @@ public class CargadorEntrada {
     public static ControladorReactor cargar(InputStream entrada) {
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(entrada))) {
             Map<String, List<String>> grafo = new HashMap<>();
-
             reader.lines().forEach(linea -> parsearLinea(linea, grafo));
-
             return new ControladorReactor(grafo);
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -27,19 +25,12 @@ public class CargadorEntrada {
     }
 
     private static void parsearLinea(String linea, Map<String, List<String>> grafo) {
-        // Formato: "bbb: ddd eee"
-        // Split por espacios: ["bbb:", "ddd", "eee"]
         String[] partes = linea.split(" ");
-
-        // El nodo origen tiene ':' al final, lo quitamos
         String origen = partes[0].substring(0, partes[0].length() - 1);
-
         List<String> destinos = new ArrayList<>();
-        // Los destinos son el resto de partes
         for (int i = 1; i < partes.length; i++) {
             destinos.add(partes[i]);
         }
-
         grafo.put(origen, destinos);
     }
 }

@@ -7,7 +7,6 @@ import java.util.stream.Stream;
 
 public record Motor(Stream<RangoID> rangoID, LongPredicate validator) {
 
-    // Ejecución del flujo: Range -> Filter -> Sum
     public long run() {
         return rangoID
                 .map(range -> range.getInvalidIds(validator)) // Aplica la estrategia

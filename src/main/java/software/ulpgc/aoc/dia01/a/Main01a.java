@@ -1,4 +1,4 @@
-package software.ulpgc.aoc.dia01.dia01a;
+package software.ulpgc.aoc.dia01.a;
 
 
 import software.ulpgc.aoc.dia01.CajaFuerte;

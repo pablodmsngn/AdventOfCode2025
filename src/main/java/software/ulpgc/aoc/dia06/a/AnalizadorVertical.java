@@ -24,14 +24,10 @@ public class AnalizadorVertical implements ConstructorOperaciones {
 
     @Override
     public ConstructorOperaciones agregarLinea(String linea) {
-        // PROTECCIÓN 1: Ignorar líneas vacías o que solo tienen espacios
         if (linea == null || linea.trim().isEmpty()) {
             return this;
         }
-
         if (linea.length() > longitudMaxima) longitudMaxima = linea.length();
-
-        // Si la línea empieza por un operador, es la línea final
         if (Operador.esOperador(linea.charAt(0))) {
             lineaOperadores = linea;
         } else {
@@ -42,27 +38,20 @@ public class AnalizadorVertical implements ConstructorOperaciones {
 
     @Override
     public Stream<Operacion> construir() {
-        // 1. Normalizar líneas (rellenar con espacios)
         List<String> lineasNormalizadas = lineasNumericas.stream()
                 .map(this::rellenar)
                 .toList();
-
-        // 2. Detectar índices de columnas
         List<Integer> indices = obtenerIndicesInicio();
-
-        // 3. Cortar y crear operaciones
         return generarOperaciones(obtenerListaOperadores(indices), obtenerListasOperandos(indices, lineasNormalizadas));
     }
 
     private List<List<Long>> obtenerListasOperandos(List<Integer> indices, List<String> lineas) {
         return IntStream.range(0, indices.size())
                 .mapToObj(i -> lineas.stream()
-                        // Cortamos la columna correspondiente
                         .map(linea -> linea.substring(
                                 indices.get(i),
                                 i + 1 < indices.size() ? indices.get(i + 1) : longitudMaxima
                         ).strip())
-                        // PROTECCIÓN 2: Si el corte está vacío (ej. espacios), lo saltamos
                         .filter(s -> !s.isEmpty())
                         .map(Long::parseLong)
                         .toList()
@@ -76,7 +65,7 @@ public class AnalizadorVertical implements ConstructorOperaciones {
     }
 
     private List<Integer> obtenerIndicesInicio() {
-        if (lineaOperadores == null) return List.of(); // Protección por si no hay operadores
+        if (lineaOperadores == null) return List.of();
         return IntStream.range(0, lineaOperadores.length())
                 .filter(i -> Operador.esOperador(lineaOperadores.charAt(i)))
                 .boxed()

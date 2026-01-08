@@ -6,7 +6,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.stream.Stream;
 
-/// Extraemos la lectura de archivos para cumplir con DRY (Don't Repeat Yourself)
 
 public class CargadorEntrada {
     public static void process(String filename, CajaFuerte safe) {

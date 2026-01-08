@@ -1,6 +1,9 @@
 package software.ulpgc.aoc.dia04;
 
 
+import software.ulpgc.aoc.dia04.a.SolucionadorImprentaA;
+import software.ulpgc.aoc.dia04.b.SolucionadorImprentaB;
+
 import java.io.InputStream;
 
 /**

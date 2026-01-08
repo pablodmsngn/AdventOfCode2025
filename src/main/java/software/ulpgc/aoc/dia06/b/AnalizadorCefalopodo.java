@@ -20,7 +20,6 @@ public class AnalizadorCefalopodo implements ConstructorOperaciones {
     public ConstructorOperaciones agregarLinea(String linea) {
         if (linea.length() > longitudMaxima) longitudMaxima = linea.length();
 
-        // Detectamos si es la línea de operadores (última línea)
         if (!linea.isEmpty() && Operador.esOperador(linea.charAt(0))) {
             lineaOperadores = linea;
         } else {
@@ -31,39 +30,26 @@ public class AnalizadorCefalopodo implements ConstructorOperaciones {
 
     @Override
     public Stream<Operacion> construir() {
-        // Normalizamos ancho de líneas (Padding)
         List<String> lineasNormalizadas = lineasNumericas.stream()
                 .map(this::rellenar)
                 .toList();
 
         List<Integer> indices = obtenerIndicesOperadores();
 
-        // Generamos las operaciones mapeando cada bloque de operador
         return IntStream.range(0, indices.size())
                 .mapToObj(i -> {
-                    // Definimos el rango horizontal del problema actual
                     int inicio = indices.get(i);
-                    // El "listo" usa (next - 1) para excluir la columna del siguiente operador
                     int fin = (i + 1 < indices.size()) ? indices.get(i + 1) - 1 : longitudMaxima;
-
                     Operador op = Operador.desde(String.valueOf(lineaOperadores.charAt(inicio)));
-
-                    // Extraemos los números verticalmente
                     List<Long> operandos = extraerOperandosVerticales(inicio, fin, lineasNormalizadas);
-
                     return new Operacion(operandos, op);
                 });
     }
 
     private List<Long> extraerOperandosVerticales(int inicio, int fin, List<String> lineas) {
         List<Long> numeros = new ArrayList<>();
-
-        // Iteramos horizontalmente sobre las columnas del bloque
-        // Nota: El orden (Izq->Der o Der->Izq) da igual por conmutatividad
         for (int col = inicio; col < fin; col++) {
             StringBuilder sb = new StringBuilder();
-
-            // Construimos el número verticalmente (Arriba -> Abajo)
             for (String linea : lineas) {
                 if (col < linea.length()) {
                     char c = linea.charAt(col);
@@ -72,8 +58,6 @@ public class AnalizadorCefalopodo implements ConstructorOperaciones {
                     }
                 }
             }
-
-            // Solo añadimos si encontramos dígitos (evita el hack del "0" que puede romper multiplicaciones)
             if (!sb.isEmpty()) {
                 numeros.add(Long.parseLong(sb.toString()));
             }
