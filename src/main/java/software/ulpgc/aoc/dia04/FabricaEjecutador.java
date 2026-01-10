@@ -5,12 +5,17 @@ import software.ulpgc.aoc.dia04.a.SolucionadorImprentaA;
 import software.ulpgc.aoc.dia04.b.SolucionadorImprentaB;
 
 import java.io.InputStream;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.util.List;
 
 /**
- * Patrón Builder / Factory.
+ * Patrón Builder
  * Permite configurar paso a paso qué solucionador queremos (A o B) y con qué archivo,
  * haciendo el código cliente mucho más legible.
  */
+
+
 public class FabricaEjecutador {
     private InputStream archivo;
     private TipoEjecutor tipo;
@@ -25,13 +30,19 @@ public class FabricaEjecutador {
         return this;
     }
 
-    /**
-     * Construye la instancia concreta (Polimorfismo).
-     * Devuelve una interfaz 'Ejecutor04', ocultando qué clase real se usa.
-     */
     public Ejecutador construir() {
-        if (tipo == TipoEjecutor.A) return new SolucionadorImprentaA(archivo);
-        return new SolucionadorImprentaB(archivo);
+        if (archivo == null) throw new IllegalStateException("Falta input");
+
+        List<String> lineas = new BufferedReader(new InputStreamReader(archivo))
+                .lines()
+                .toList();
+
+        // Creamos el modelo de dominio una sola vez
+        CuadriculaAlmacen almacenInicial = CuadriculaAlmacen.desde(lineas);
+
+        // Inyectamos el MODELO, no el Stream
+        if (tipo == TipoEjecutor.A) return new SolucionadorImprentaA(almacenInicial);
+        return new SolucionadorImprentaB(almacenInicial);
     }
 
     public enum TipoEjecutor { A, B }

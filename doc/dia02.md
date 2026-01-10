@@ -1,62 +1,25 @@
+### **Día 2 \- Tienda de Regalos**
 
-### Parte 1: El Núcleo y la Estructura Base
+#### **1\. Introducción**
 
-En la primera fase, establecimos una arquitectura modular para procesar rangos de identificadores y detectar aquellos que cumplen un patrón específico (repetidos exactamente dos veces, ej: `123123`). El objetivo era separar la lectura de datos, la lógica matemática y la ejecución.
+El problema nos sitúa en una tienda de regalos con una base de datos corrupta. Tenemos rangos de IDs de productos (ej. "10-20") y debemos encontrar cuáles son inválidos y sumarlos. El reto tiene dos partes que cambian la definición de "inválido":
 
-**¿Qué hicimos?**
+* **Parte A:** Un ID es inválido si contiene una secuencia repetida exactamente dos veces (ej: 1212).
+* **Parte B:** Un ID es inválido si la secuencia se repite al menos dos veces (ej: 121212 también cuenta).
 
-1. Creamos el record `RangoID` para encapsular la generación de secuencias numéricas y el filtrado.
-2. Diseñamos el `Motor` para orquestar la ejecución sin conocer los detalles de la regla.
-3. Implementamos `ConstructorMotor` (Builder) y `CargadorEntrada` para la creación de objetos y lectura de ficheros.
-4. Definimos `EstrategiaValidacion` con el `PATRON_A`.
+#### **2\. Arquitectura General y principios**
 
-**Principios y Fundamentos aplicados:**
+* **Inversión de Dependencias (DIP):** (Módulos de alto nivel no deben depender de módulos de bajo nivel, sino de abstracciones ). En lugar de que mi clase Motor dependa de una lógica de validación concreta (como un if dentro del código), la hice depender de una abstracción: la interfaz funcional LongPredicate(Interfaz Funcional nativa de Java, siempre recibe un long y devuelve true si cumple la regla). Esto significa que el Motor no sabe cómo se validan los IDs (si es por regex o matemáticas), solo sabe que tiene un componente externo que le dice si es válido o no.
 
-* **Alta Cohesión:**
-  `RangoID` se enfoca únicamente en manejar intervalos numéricos, mientras que `CargadorEntrada` solo se ocupa de transformar texto en objetos. Esto cumple con la idea de que "las partes de un módulo deben estar estrechamente relacionadas y enfocadas en una única tarea".
+* **Principio Abierto/Cerrado (OCP):** (Las clases deben estar abiertas para la extensión, pero cerradas para la modificación). Gracias a la abstracción anterior, mi clase **Motor** está cerrada a modificaciones (no necesito tocar su código para cambiar de la Parte A a la B). Está abierta a la extensión porque simplemente inyecto una estrategia diferente (PATRON\_A o PATRON\_B) en el constructor y el sistema cambia de comportamiento sin alterar el procesador central.
 
+* **Principio de Responsabilidad Única (SRP):** (Cada módulo o clase debe tener una sola razón para cambiar ).  
+  He dividido el sistema para que cada clase tenga un propósito único:
+  * **CargadorEntrada** (Principio DRY): (No repetir código ). Su única responsabilidad es lidiar con el I/O (lectura de ficheros) y orquestar la creación del motor, evitando duplicar esta lógica en los Main.
+  * **ConstructorMotor** (Patrón Builder)(Permite crear el objeto paso a paso en lugar de hacerlo todo de golpe en un constructor gigante.): Implementa el Patrón Builder para configurar el objeto Motor paso a paso (fichero y estrategia). Esto ofrece una interfaz fluida y aísla la complejidad de la construcción de la lógica de negocio, asegurando que el objeto nunca se cree incompleto.
+  * **RangoID (Alta Cohesión):** (Partes estrechamente relacionadas enfocadas en una tarea). Se centra exclusivamente en el dominio de los rangos numéricos: sabe expandirse a sí mismo en un flujo de números (LongStream). No sabe nada de validaciones.
+  * **EstrategiasValidacion** (Clase Utilidad): Agrupa las reglas de negocio (Regex) en constantes estáticas. Su única razón para cambiar es si se modifican las reglas de qué constituye un ID **inválido.**
 
-* **Abstracción:**
-  En `Motor`, ocultamos la complejidad de cómo se valida un número detrás de la interfaz funcional `LongPredicate`. Como indica el texto, esto "consiste en ocultar los detalles complejos detrás de una interfaz simple". El `Motor` no sabe de expresiones regulares, solo sabe preguntar "es válido?".
+#### **3\. Conclusión**
 
-
-* **Principio de Responsabilidad Única (SRP):**
-  "Cada módulo o clase debe tener una sola razón para cambiar". `ConstructorMotor` cambia si modificamos cómo se construye el objeto; `EstrategiaValidacion` cambia solo si cambia la definición matemática de ID inválido.
-
-
-* **Código Expresivo:**
-  El uso del patrón Builder en `ConstructorMotor` (`.from().use().runner()`) hace que la configuración sea legible como lenguaje natural. Esto se alinea con el fundamento de que el código debe ser "claro y comprensible, facilitando la lectura".
-
-
-
-
-
-### Parte 2: La Extensión y el Cambio de Reglas
-
-En la segunda fase, el criterio de validación cambió: los IDs ahora son inválidos si el patrón se repite *al menos* dos veces (ej: `123123123`), no solo exactamente dos. Debíamos adaptar el sistema sin reescribir el núcleo.
-
-**¿Qué hicimos?**
-
-1. Añadimos una nueva constante `PATRON_B` en `EstrategiaValidacion` con una Regex modificada (`+` en lugar de nada).
-2. Creamos `Main02b` para inyectar esta nueva estrategia.
-3. **No tocamos** `Motor`, `RangoID` ni `ConstructorMotor`.
-
-**Principios y Fundamentos aplicados:**
-
-* **Principio Abierto Cerrado (OCP):**
-  Aplicamos este principio rigurosamente. "Las clases deben estar abiertas para la extensión, pero cerradas para la modificación".
-*Cómo lo logramos:* Para la Fase 2, extendimos el comportamiento creando una nueva estrategia (`PATRON_B`) e inyectándola. El `Motor` permaneció cerrado a modificaciones; no tuvimos que entrar en su código para añadir un `if (fase2)`.
-
-
-* **Principio de Inversión de Dependencias (DIP):**
-  En el documento que esta en el campus de los diseños establece que "Módulos de alto nivel no deben depender de módulos de bajo nivel, sino de abstracciones".
-*Cómo lo logramos:* El `Motor` (alto nivel) no depende de la clase concreta `EstrategiaValidacion` ni de una Regex específica. Depende de la abstracción `LongPredicate`. Solo sabe que recibirá algo que devuelve `true` o `false`.
-
-
-* **Principio DRY (Don't Repeat Yourself):**
-  "Cada pieza de conocimiento... debería tener una representación única".
-*Cómo lo logramos:* Al refactorizar `CargadorEntrada` para que utilice internamente `ConstructorMotor`, evitamos duplicar la lógica de parseo del fichero (separación por comas, limpieza de strings) en ambos ejercicios. Reutilizamos toda la infraestructura para la Parte B.
-
-
-* **Bajo Acoplamiento:**
-  Diseñamos componentes con "pocas interdependencias". Gracias a esto, pudimos cambiar la regla de negocio crítica (la Regex) en el `Main` sin que el sistema de carga de archivos o el motor de ejecución se vieran afectados o requirieran recompilación.
+Al utilizar Streams y Expresiones Regulares bajo estos principios, he evitado la complejidad de los bucles anidados. El resultado es un sistema con Bajo Acoplamiento, donde la lógica de procesamiento (Motor) es totalmente independiente de las reglas de validación, facilitando el mantenimiento y las pruebas.

@@ -1,11 +1,7 @@
 package software.ulpgc.aoc.dia01;
 
 
-/**
- * Representa el dial físico de la caja fuerte.
- * Principio: Alta Cohesión (Solo sabe de matemáticas circulares).
- * Patrón: Value Object (Inmutable).
- */
+
 public record Dial(int posicion) {
     public Dial() {
         this(50);

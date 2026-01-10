@@ -1,10 +1,13 @@
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import software.ulpgc.aoc.dia04.CuadriculaAlmacen;
 import software.ulpgc.aoc.dia04.Ejecutador;
 import software.ulpgc.aoc.dia04.b.SolucionadorImprentaB;
 
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 
@@ -26,10 +29,11 @@ public class Dia04BTest {
                 @.@.@@@.@.
                 """;
 
+        List<String> lineas = input.lines().toList();
+        CuadriculaAlmacen almacen = CuadriculaAlmacen.desde(lineas);
 
-        Ejecutador solucionador = new SolucionadorImprentaB(
-                new ByteArrayInputStream(input.getBytes(StandardCharsets.UTF_8))
-        );
+
+        Ejecutador solucionador = new SolucionadorImprentaB(almacen);
 
         long resultado = solucionador.ejecutar();
 
@@ -46,9 +50,10 @@ public class Dia04BTest {
                 .@.
                 """;
 
-        Ejecutador solucionador = new SolucionadorImprentaB(
-                new ByteArrayInputStream(input.getBytes(StandardCharsets.UTF_8))
-        );
+        CuadriculaAlmacen almacen = CuadriculaAlmacen.desde(input.lines().toList());
+
+
+        Ejecutador solucionador = new SolucionadorImprentaB(almacen);
 
         assertEquals(5, solucionador.ejecutar());
     }

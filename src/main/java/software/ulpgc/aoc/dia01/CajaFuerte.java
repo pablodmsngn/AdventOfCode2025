@@ -23,6 +23,9 @@ public class CajaFuerte {
     }
 
 
+
+
+
     public int getVecesCero() {
         return vecesEnCero;
     }

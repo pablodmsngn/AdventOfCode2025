@@ -9,6 +9,7 @@ public class ControladorLuces {
         this.circuitos = circuitos;
     }
 
+
     public long ejecutar(long numeroDeConexiones) {
         return new ConectorCircuitos(circuitos).calcularFactorSeguridad(numeroDeConexiones);
     }

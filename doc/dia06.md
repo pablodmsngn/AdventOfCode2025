@@ -1,58 +1,27 @@
+### **Día 6 \- Compactador de basura**
 
+#### **1\. Introducción y Problema**
 
-### Parte 1: Abstracción Funcional y Parseo Vertical
+El escenario es un compactador de basura donde unos cefalópodos necesitan ayuda con una hoja de deberes de matemáticas. La entrada es una cuadrícula de caracteres inusual donde los problemas matemáticos están dispuestos visualmente en columnas y filas, con un operador (+ o \*) al final de cada bloque. El reto consiste en interpretar esta misma cuadrícula de dos formas radicalmente distintas para obtener operandos y sumarlos al final:
 
-En la primera fase, el desafío principal no era la complejidad matemática, sino la **representación estructural de los datos**: una matriz de texto donde las operaciones se definen verticalmente (columnas) pero se leen horizontalmente (filas). El objetivo fue desacoplar la lógica de "cómo leer este formato extraño" de la lógica de "cómo calcular el resultado".
+* **Parte A:** Los números están escritos verticalmente en columnas alineadas. Un problema se compone de una lista de números verticales y su operador asociado al pie de la columna.
+* **Parte B:** La interpretación cambia a "Matemáticas Cefalópodas". Ahora, las columnas no son números enteros, sino dígitos posicionales. Los números se leen de derecha a izquierda a través de las columnas, y los problemas se separan por columnas vacías.
 
-**¿Qué hicimos?**
+#### **2\. Arquitectura General y principios**
 
-1. Definimos la interfaz `ConstructorOperaciones` (Builder) como un contrato para transformar texto crudo en objetos de dominio, aislando la complejidad del parseo.
-2. Implementamos `AnalizadorVertical`, utilizando **Streams** para "rebanar" el texto verticalmente y detectar operadores dinámicamente.
-3. Modelamos el dominio con el record `Operacion` (inmutable) y el enum `Operador` (Estrategia), aplicando un enfoque declarativo y funcional para el cálculo.
-4. Utilizamos `ControladorCompactador` como orquestador que recibe un flujo de operaciones ya procesadas, ignorando completamente el origen o formato de los datos.
+* **Patrón Strategy (ConstructorOperaciones):** (Define una familia de algoritmos, encapsula cada uno y los hace intercambiables).  
+  He definido la interfaz **ConstructorOperaciones** para abstraer la lógica de parseo.
+  * **AnalizadorVertical**: Implementa la estrategia de la Parte A (números por columnas).
+  * **AnalizadorCefalopodo**: Implementa la estrategia de la Parte B (dígitos posicionales).  
+    Esto permite cambiar radicalmente cómo se interpreta el archivo de texto sin tocar ni una línea del Cargador ni del Controlador.
+* **Inversión de Dependencias (DIP):** (Módulos de alto nivel no deben depender de módulos de bajo nivel, sino de abstracciones). El **CargadorEntrada** no depende de las clases concretas de análisis. Depende de la abstracción **ConstructorOperaciones**. De igual forma, el **ControladorCompactador** solo conoce un Stream\<Operacion\>, ignorando por completo de dónde salieron esos datos o cómo se parsearon.
+* **Principio Abierto/Cerrado (OCP):** (Las clases deben estar abiertas para la extensión, pero cerradas para la modificación). Gracias al diseño anterior, el sistema está cerrado a modificaciones. Si descubrimos una "Parte C" donde los números se leen en diagonal, solo necesito crear una nueva clase **AnalizadorDiagonal** e inyectarla. El motor de cálculo (**ControladorCompactador**) y el sistema de carga permanecen inalterados.
+* **Principio de Responsabilidad Única (SRP) y Alta Cohesión:** (Cada módulo o clase debe tener una sola razón para cambiar, reflejando la alta cohesión).
+  * **CargadorEntrada** (Principio DRY): (No repetir código). Centraliza la lectura del fichero y el manejo de excepciones de I/O, delegando el procesamiento de líneas a la estrategia inyectada.
+  * **Operador (Alta Cohesión / Enum Funcional):** (Partes estrechamente relacionadas enfocadas en una tarea única). Encapsula la lógica matemática. Al implementar BinaryOperator\<Long\>, el Enum no es solo una etiqueta, es una función ejecutable. Sabe cómo operar (apply) y cuál es su valor identidad (0 para sumar, 1 para multiplicar), centralizando la lógica aritmética.
+  * **Operacion (Alta Cohesión / Value Object):** Un record que agrupa operandos y operador. Su única responsabilidad es orquestar el cálculo final mediante una reducción (reduce), delegando la matemática pura al Operador.
+  * **ControladorCompactador (Alta Cohesión):** Su única tarea es sumar los resultados de todas las operaciones, actuando como el punto final de coordinación del proceso.
 
-**Principios y Fundamentos aplicados:**
+#### **3\. Conclusión**
 
-* Principio de Responsabilidad Única (SRP):
-Separamos radicalmente las responsabilidades: `AnalizadorVertical` solo sabe interpretar texto y coordenadas; `Operacion` solo sabe reducir listas de números a un resultado. Esto asegura alta cohesión, ya que cada clase tiene una única tarea.
-
-
-* Principio de Inversión de Dependencias (DIP):
-El `ControladorCompactador` (módulo de alto nivel) no depende de la clase concreta `AnalizadorVertical`, sino de la abstracción `Stream<Operacion>`. El `CargadorEntrada` depende de la interfaz `ConstructorOperaciones`. Esto desacopla el flujo de ejecución de los detalles de implementación.
-
-
-* Código Expresivo y Funcional:
-El uso de `Records` y `Enums` con métodos como `apply` o `identity` permite que la lógica matemática se lea casi como lenguaje natural (e.g., `reduce(operador.identidad(), operador)`), eliminando la complejidad accidental de los bucles imperativos.
-
-
-* **Patrón Strategy (implícito en Enum):**
-  El enum `Operador` encapsula algoritmos variables (suma vs. multiplicación) y sus identidades neutras, permitiendo intercambiar la lógica de cálculo sin usar condicionales complejos (`if/else`) en el modelo.
-
-
-
-### Parte 2: Extensibilidad y Matemáticas Cefalópodas
-
-En la segunda fase, las reglas de interpretación del archivo cambiaron drásticamente: la lectura debía realizarse de **derecha a izquierda** y la alineación de los bloques dependía del tipo de operador. El reto fue adaptar el sistema a estas nuevas reglas ("Matemáticas Cefalópodas") sin romper la lógica de cálculo ya verificada.
-
-**¿Qué hicimos?**
-
-1. Creamos una nueva implementación `AnalizadorCefalopodo` que respeta la interfaz `ConstructorOperaciones`, pero cambia internamente la lógica de recorrido de la matriz (iteración inversa de columnas).
-2. Añadimos comportamiento al `Operador` para determinar reglas de alineación, sin alterar su contrato básico.
-3. Inyectamos esta nueva implementación en el `Main` a través del `CargadorEntrada`, reutilizando el 100% del código del controlador y del modelo de datos.
-
-**Principios y Fundamentos aplicados:**
-
-* Principio Abierto Cerrado (OCP):
-El sistema demostró estar abierto a la extensión (soportar "Matemáticas Cefalópodas") pero cerrado a la modificación. No tuvimos que tocar ni una línea del `ControladorCompactador` ni de la clase `Operacion` para soportar el nuevo formato de lectura.
-
-
-* Principio de Sustitución de Liskov (LSP):
-El `AnalizadorCefalopodo` sustituye al `AnalizadorVertical` sin que el `CargadorEntrada` o el `Controlador` noten la diferencia. Ambos cumplen el contrato de `ConstructorOperaciones`, asegurando la intercambiabilidad de los módulos.
-
-
-* Principio DRY (Don't Repeat Yourself):
-Reutilizamos la infraestructura de carga (`CargadorEntrada`) y la lógica matemática (`Operacion`). No duplicamos código para manejar la lectura de archivos o la suma de resultados; simplemente variamos la estrategia de construcción.
-
-
-* **Patrón Builder (Variación):**
-  Aunque usamos una interfaz, las clases `Analizador...` actúan como Builders que acumulan estado (líneas de texto) y finalmente construyen el objeto complejo (el Stream de operaciones) al llamar a `construir()`. Esto separa la construcción de la representación final.
+El uso de Enums Funcionales (Operador) y componentes con Alta Cohesión muestra cómo Java permite integrar lógica y datos de manera elegante, evitando grandes bloques condicionales y manteniendo el código limpio y mantenible.

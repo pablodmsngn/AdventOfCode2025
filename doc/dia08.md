@@ -1,40 +1,34 @@
-### Parte 1: Modelado de Espacio 3D y Algoritmos Voraces
+### **Día 8 \- Patio de juegos**
 
-En la primera fase, el problema consistía en agrupar elementos (cajas de conexiones) en el espacio tridimensional basándose en su proximidad. El reto técnico no era solo calcular distancias, sino gestionar eficientemente la fusión de conjuntos disjuntos (circuitos) a medida que se realizaban conexiones.
+#### **1\. Introducción y Problema**
 
-**¿Qué hicimos?**
+El escenario es un patio de juegos subterráneo donde los elfos están instalando luces navideñas. Tenemos una lista de coordenadas 3D (X, Y, Z) que representan cajas de conexiones. El objetivo es conectar estas cajas mediante cables, priorizando siempre las que estén más cerca (menor distancia euclidiana).  
+El reto se divide en dos partes que plantean problemas de conectividad de grafos:
 
-1. Modelamos el dominio con records inmutables: `Caja` (coordenadas 3D) y `ParCajas` (arista con peso/distancia), facilitando el paso de datos sin efectos secundarios.
-2. Implementamos `ConectorCircuitos` (el motor lógico), utilizando **Java Streams en paralelo** para calcular la matriz de distancias () de manera eficiente y ordenarlas por proximidad.
-3. Aplicamos un **Algoritmo Voraz (Greedy)**: procesamos siempre la conexión más corta disponible. Si conecta dos circuitos diferentes, los fusionamos en uno nuevo (`Circuit`).
-4. Utilizamos `ControladorLuces` para encapsular la complejidad del algoritmo y exponer solo el resultado de negocio (el "factor de seguridad").
+* **Parte A**: Realizar exactamente las 1000 conexiones más cortas disponibles. Al final, debemos identificar los circuitos resultantes y multiplicar el tamaño de los tres más grandes.
+* **Parte B:** Ignorar el límite de conexiones y continuar uniendo cables hasta que todas las cajas formen un único circuito gigante (unificación total).
 
-**Principios y Fundamentos aplicados:**
+#### **2\. Arquitectura General y principios**
 
-* **Principio de Responsabilidad Única (SRP):**
-  Separamos las preocupaciones: `Caja` solo calcula distancias entre puntos; `ConectorCircuitos` orquesta la lógica de unión de conjuntos; y `CargadorEntrada` traduce texto a objetos.
-* **Paralelismo Declarativo:**
-  El cálculo de distancias entre todos los pares de cajas es costoso. Utilizamos `stream().parallel()` para aprovechar los núcleos de la CPU sin complicar el código con hilos manuales, mejorando el rendimiento en la fase de preparación de datos.
-* **Alta Cohesión:**
-  La lógica de "fusionar circuitos" está encapsulada dentro del conector. El controlador no sabe cómo se unen las cajas, solo pide el resultado final.
-* **Objetos de Valor (Value Objects):**
-  El uso de `record ParCajas` actúa como un objeto de valor temporal que existe solo para transportar la información de una posible conexión (quién con quién y a qué distancia), simplificando la ordenación.
+* **Principio de Responsabilidad Única (SRP): (Cada módulo o clase debe tener una sola razón para cambiar, reflejando la alta cohesión).**  
+  He distribuido las responsabilidades para cumplir este principio en cada componente:
+  * **Caja**: Su responsabilidad es puramente geométrica y de datos. Es un record inmutable que gestiona sus coordenadas y el cálculo de distancias.
+  * **Circuito**: Representa una agrupación lógica de cajas conectadas. Su única razón de existir es mantener el conjunto (Set) de elementos que comparten electricidad.
+  * **ParCajas**: Es un objeto de transferencia (DTO) especializado. Su única función es asociar dos cajas y la distancia pre-calculada entre ellas, facilitando la ordenación en el stream sin recalcular fórmulas.
+  * **ConectorCircuitos**: Su única razón de cambio es la lógica algorítmica. Gestiona la generación de pares, la ordenación por distancia y la decisión de fusionar circuitos.
+  * **ControladorLuces(*Consiste en ocultar los detalles complejos detrás de una interfaz simple*)** oculta la complejidad del algoritmo combinatorio (ConectorCircuitos) detrás de métodos simples como ejecutar() y ejecutarUnificacion(). El Main no sabe cómo se conectan las luces ni cómo se fusionan los circuitos, solo pide el resultado final.
+* **Principio de no repetir código (DRY): (Cada pieza de conocimiento en un software debería tener una representación única inequívoca).**  
+  La clase **CargadorEntrada** centraliza la lógica de lectura y parseo del fichero. Evita duplicar el manejo de flujos (InputStream) y excepciones entre **Main08A** y **Main08B**, proporcionando un punto único de acceso a los datos.
+* **Fundamento de Alta Cohesión: (Refiere a la idea de que las partes de un módulo o componente deben estar estrechamente relacionadas y enfocadas en una única tarea).**  
+  La clase **Caja** es el mejor ejemplo. No solo almacena datos (x, y, z), sino que encapsula la operación distanciaA. Al mantener los datos y la lógica geométrica juntos, el resto del sistema trabaja con conceptos de alto nivel en lugar de fórmulas matemáticas dispersas.
+* **Patrón Factory Method: (En lugar de usar directamente el constructor... se llama a un método estático que encapsula la creación del objeto).**  
+  Implementado en **CargadorEntrada.cargar(String)**. Este método estático encapsula la complejidad de localizar el archivo en el classpath y construir el grafo inicial, entregando al cliente una instancia de **ControladorLuces** lista para usar.
+* **Inmutabilidad y Value Objects:**  
+  He utilizado Records (Caja, Circuito, ParCajas) para definir objetos inmutables.
+  * Esto es crítico para la seguridad del procesamiento paralelo: al no poder cambiar el estado interno de una Caja o un ParCajas una vez creados, eliminamos por completo los errores de concurrencia (race conditions) al procesarlos en Streams.
+* **Principio YAGNI (You Aren't Gonna Need It): (Aconseja no añadir funcionalidad hasta que sea necesaria).**  
+  He evitado crear interfaces genéricas complejas para cumplir estrictamente con OCP (Abierto/Cerrado), ya que el problema tiene un alcance definido (Parte A y B). He optado por un diseño directo en ControladorLuces que expone los dos métodos necesarios, manteniendo el código simple y fácil de leer.Código Expresivo:
 
-### Parte 2: Convergencia de Estado y Unificación
+#### **3\. Conclusión**
 
-En la segunda fase, el objetivo cambió: en lugar de realizar un número fijo de conexiones, debíamos continuar conectando hasta que **todos los componentes formaran un único circuito conexo**. Esto requirió cambiar la condición de parada y capturar el evento exacto que lograba la unificación.
-
-**¿Qué hicimos?**
-
-1. Extendimos la lógica en `ConectorCircuitos` para soportar una ejecución hasta la convergencia (cuando `circuitos.size() == 1`).
-2. Reutilizamos el flujo de generación de pares (`flujoConexiones`) de la Parte 1, demostrando que el cálculo de distancias es agnóstico a la condición de parada.
-3. Utilizamos `AtomicReference` dentro del stream secuencial para capturar "al vuelo" el par de cajas específico que causó la fusión final, permitiendo calcular el coste requerido ().
-
-**Principios y Fundamentos aplicados:**
-
-* **Principio DRY (Don't Repeat Yourself):**
-  La compleja lógica de generar pares  y calcular sus distancias euclidianas se definió una sola vez y se reutilizó tanto para la limitación por número (Parte 1) como para la unificación total (Parte 2).
-* **Principio Abierto Cerrado (OCP):**
-  El diseño permitió añadir la nueva lógica de unificación (`conectarTotalmente`) sin modificar la estructura de datos `Circuit` o `Box`, y sin romper la lógica existente de la Parte 1.
-* **Gestión de Estado Mutable Controlada:**
-  Aunque preferimos la inmutabilidad, la fusión de circuitos requiere un estado que evoluciona (la lista de circuitos activos). Esta mutabilidad se confinó estrictamente dentro del método de conexión, siendo invisible para el resto de la aplicación, lo que mantiene el sistema seguro y predecible.
+Prioriza la simplicidad (YAGNI) y la seguridad de tipos. El uso extensivo de Records para modelar el dominio (Caja, Circuito, ParCajas) garantiza inmutabilidad y coherencia de datos. La lógica compleja se aísla en ConectorCircuitos, mientras que CargadorEntrada (Factory) y ControladorLuces (Facade) mantienen limpia la interfaz de uso.

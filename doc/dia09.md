@@ -1,35 +1,30 @@
 
-### Parte 1: Combinatoria y Programación Declarativa
+### **Día 9 \- Cine**
 
-En la primera fase, el problema consistía en encontrar el rectángulo de mayor área posible definido por dos "baldosas rojas" que actúan como esquinas opuestas. El reto principal era la generación eficiente de todas las combinaciones posibles de pares de coordenadas.
+#### **1\. Introducción y Problema**
 
-**¿Qué hicimos?**
+El problema nos sitúa en el cine de la base del Polo Norte, que tiene un suelo de baldosas rojas y de otros colores. Se nos proporciona una lista de coordenadas de las baldosas rojas. El objetivo es encontrar el rectángulo más grande posible utilizando dos baldosas rojas como esquinas opuestas.  
+El reto se divide en dos partes que varían en las restricciones geométricas:
 
-1. Modelamos el dominio con records inmutables: `Coordenada` (posición) y `Rectangulo` (área y dimensiones), encapsulando la lógica matemática ().
-2. Implementamos `BuscadorRectangulos` (Buscador), utilizando **Java Streams** para generar combinatoriamente todos los pares únicos  de baldosas rojas.
-3. Aplicamos un enfoque **Declarativo**: en lugar de bucles anidados imperativos, definimos el flujo de datos: `generar -> aplanar -> ordenar por área -> tomar el primero`.
-4. Utilizamos `ControladorCine` (Controlador) para aislar la lógica de búsqueda de la infraestructura de entrada.
+* **Parte A:** Calcular el área máxima posible formando un rectángulo con cualquier par de baldosas rojas de la lista, sin importar qué hay en medio.
+* **Parte B:** Las baldosas rojas forman el contorno de un polígono (conectadas por baldosas verdes). El rectángulo seleccionado debe ser válido, es decir, debe estar contenido completamente dentro de este polígono (solo puede pisar baldosas rojas o verdes). Esto requiere verificar intersecciones y contención geométrica.
 
-**Principios y Fundamentos aplicados:**
+#### **2\. Arquitectura General y principios**
 
-* **Principio de Responsabilidad Única (SRP):**
-  Separamos las responsabilidades: `Coordenada` solo parsea datos; `Rectangulo` calcula propiedades geométricas; y `BuscadorRectangulos` ejecuta la estrategia de búsqueda.
-* **Inmutabilidad (Records):**
-  Al usar `records` para las coordenadas y los rectángulos, garantizamos que las posiciones no se modifiquen durante el cálculo masivo de combinaciones, evitando condiciones de carrera y efectos secundarios.
-* **Programación Funcional:**
-  El uso de `flatMap` y `sorted` permite expresar la intención ("quiero el rectángulo más grande") sin detallar el control de flujo paso a paso, haciendo el código más legible y mantenible.
+* **Principio de Responsabilidad Única (SRP): (Cada módulo o clase debe tener una sola razón para cambiar, reflejando la alta cohesión).**  
+  He distribuido las responsabilidades para maximizar la organización del código:
+  * **CargadorEntrada (Principio DRY): (No repetir código).** Centraliza la gestión del I/O (lectura de recursos) y el manejo de excepciones, evitando duplicar la lógica de carga en los Main de cada parte.
+  * **BuscadorRectangulos (Lógica Algorítmica):** Su única responsabilidad es la búsqueda combinatoria. Genera todos los rectángulos posibles y aplica los filtros de validez (geometría de polígonos) para encontrar el óptimo.
+  * **ControladorCine (Adstraccion, Consiste en ocultar los detalles complejos detrás de una interfaz simple)**oculta la complejidad del algoritmo combinatorio (BuscadorRectangulos) detrás de un método simple obtenerAreaMaxima(). El Main no sabe cómo se buscan los rectángulos, solo pide el resultado.
+* **Fundamento de Alta Cohesión: (Las partes de un módulo deben estar estrechamente relacionadas y enfocadas en una única tarea).**
+  * **Rectangulo:** Es un Record que actúa como Value Object. No solo almacena dos coordenadas, sino que encapsula toda la lógica matemática relacionada con su forma: cálculo de área, ancho, alto y obtención de límites (minX, maxY). Esto evita dispersar cálculos geométricos básicos por el resto de la aplicación.
+* **Patrón Factory Method: (En lugar de usar directamente el constructor... se llama a un método estático que encapsula la creación del objeto).**
+  * Implementado en CargadorEntrada.cargar: Encapsula la complejidad de abrir el InputStream y leer las líneas del fichero.
+  * Implementado en Coordenada.desde(String): Encapsula el parseo de la cadena de texto (ej. "7,1") para convertirla en un objeto Coordenada válido, centralizando la lógica de transformación de datos.
+* **Inmutabilidad (Records):**  
+  He utilizado records para las estructuras de datos fundamentales (Coordenada, Rectangulo).
+  * Al ser inmutables, facilitan el procesamiento paralelo y el uso de Streams en la clase BuscadorRectangulos, asegurando que las coordenadas no sean modificadas accidentalmente durante la generación masiva de combinaciones.
 
-### Parte 2: Geometría Computacional y Optimización
+#### **3\. Conclusión**
 
-En la segunda fase, se introdujo una restricción severa: el rectángulo debía ser válido ("permitido"), lo que implicaba estar contenido estrictamente dentro de un polígono definido por la secuencia de baldosas rojas. El enfoque inicial de fuerza bruta (comprobar cada punto) resultó inviable computacionalmente.
-
-**¿Qué hicimos?**
-
-1. Sustituimos la comprobación píxel a píxel por **Geometría Computacional**: definimos los bordes del polígono uniendo las baldosas rojas secuencialmente.
-2. Implementamos el algoritmo de **Ray Casting (Punto en Polígono)**: para validar si un rectángulo está dentro, basta con comprobar si su centro está dentro del polígono y si ninguno de los bordes del polígono corta al rectángulo por la mitad.
-3. Optimizamos la complejidad algorítmica: pasamos de una complejidad dependiente del área (millones de píxeles) a una dependiente del número de vértices (cientos de bordes), reduciendo el tiempo de ejecución drásticamente.
-
-**Principios y Fundamentos aplicados:**
-
-* **Eficiencia Algorítmica:**
-  Reconocimos que iterar sobre el área () era ineficiente. Cambiamos la estrategia a una comprobación geométrica (), demostrando la importancia de elegir la estructura de datos y el algoritmo adecuados para el volumen de datos.
+Se utiliza una arquitectura centrada en el dominio geométrico. El uso de Value Objects ricos (Rectangulo) y la separación de la lógica de validación espacial (BuscadorRectangulos) permiten resolver un problema de optimización combinatoria manteniendo un código limpio y legible. La aplicación de Factory Methods simplifica la creación de objetos desde la entrada de datos.

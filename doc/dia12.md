@@ -1,40 +1,30 @@
-### Parte 1: Modelado de Dominio y Geometría Discreta
 
-En la primera fase, el problema consistía en determinar si un conjunto de formas geométricas (regalos/poliminós) cabía perfectamente en una cuadrícula (región). El enfoque inicial fue puramente orientado a objetos, modelando la realidad física de las piezas.
+### **Día 12 \- Granja de árboles de Navidad**
 
-**¿Qué hicimos?**
+#### **1\. Introducción y Problema**
 
-1. **Modelado Rico:** Creamos records inmutables `Present` y `Coordinate` para representar la geometría, y una clase `Region` para el tablero.
-2. **Backtracking Recursivo:** Implementamos un algoritmo estándar de "prueba y error" recursivo: colocar una pieza, intentar colocar la siguiente, y si falla, retroceder (backtrack).
-3. **Normalización Geométrica:** Implementamos lógica para generar las 8 variaciones (rotaciones y espejos) de cada pieza y normalizarlas al origen `(0,0)` para simplificar su colocación.
+El escenario nos sitúa en una caverna bajo el Polo Norte, una granja de árboles de Navidad donde los elfos intentan colocar regalos bajo los árboles. Los regalos tienen formas geométricas irregulares (poliominós) y las zonas bajo los árboles son cuadrículas de tamaños específicos (ej. 4x4, 12x5).  
+El reto es un problema clásico de Backtracking y Empaquetado (Tiling):
 
-**Principios y Fundamentos aplicados:**
+* Se nos proporciona un catálogo de formas de regalos.
+* Se nos da una lista de regiones y qué cantidad de cada regalo debe caber en ella.
+* Los regalos pueden rotarse (90º, 180º...) y voltearse (espejo), pero no pueden superponerse ni salirse de los límites.
+* El objetivo es determinar cuántas de estas configuraciones son solubles, es decir, en cuántas regiones caben todos los regalos asignados sin colisiones.
 
-* **Abstracción del Dominio:**
-  Las clases `Present` y `Region` encapsulan la complejidad geométrica (rotar, validar límites). El algoritmo de resolución no necesita saber matemáticas de coordenadas, solo pregunta `canFit()`.
-* **Inmutabilidad:**
-  Al usar `record` para las piezas, garantizamos que las rotaciones generen nuevas instancias en lugar de modificar el estado interno, previniendo efectos secundarios difíciles de rastrear en la recursividad.
+#### **2\. Arquitectura General y principios**
 
-### Parte 2: Optimización de Bajo Nivel y Máscaras de Bits (Bitmasks)
+* **Patrón Factory Method: (En lugar de usar directamente el constructor de una clase para crear objetos, se llama a un método estático que encapsula la creación del objeto).**
+    * He aplicado este patrón en CargadorEntrada. El método estático CargadorEntrada.cargar(String) encapsula la compleja lógica de parseo del archivo de entrada (que tiene dos secciones: definición de formas y definición de problemas), entregando al cliente un ControladorGranja listo para usar.
+* **Principio de Responsabilidad Única (SRP): (Cada módulo o clase debe tener una sola razón para cambiar, reflejando la alta cohesión).**
+    * **SolucionadorGranja**: Su única responsabilidad es algorítmica. Contiene la lógica pura de backtracking para encajar piezas. Decide dinámicamente si usar optimización con long (para regiones pequeñas \< 64 celdas) o BitSet (para grandes), pero no sabe nada de ficheros ni de la estructura del problema global.
+    * **CargadorEntrada (Principio DRY):** (Cada pieza de conocimiento en un software debería tener una representación única inequívoca). Centraliza la lectura del fichero y el manejo de excepciones, evitando duplicar esta lógica en el Main o el controlador.
+* **Fundamento de Alta Cohesión: (Refiere a la idea de que las partes de un módulo o componente deben estar estrechamente relacionadas y enfocadas en una única tarea).**
+    * **Forma**: Es un ejemplo perfecto de alta cohesión. No solo almacena la lista de puntos (List\<Coordenada\>), sino que encapsula toda la lógica geométrica necesaria: rotar(), voltear(), normalizar() y generarVariaciones(). Al mantener los datos y las transformaciones geométricas juntos, el solucionador no tiene que calcular matemáticas vectoriales, solo pedir las variantes.
+* **Abstracción: (Consiste en ocultar los detalles complejos detrás de una interfaz simple).**
+    * **ControladorGranja**: Actúa como una fachada. Oculta la complejidad de iterar sobre múltiples problemas y la instanciación del **SolucionadorGranja**. El Main simplemente llama a **contarRegionesValidas**(), ignorando si el algoritmo usa máscaras de bits o recursividad.
+* **Inmutabilidad y Value Objects:**
+    * He utilizado records de Java (Coordenada, Forma, Region, DefinicionProblema) para modelar los datos. Esto es crucial en el algoritmo de backtracking, donde se generan miles de variantes de formas. Al ser inmutables, garantizamos que las rotaciones y traslaciones generen nuevas instancias sin corromper las formas originales del catálogo.
 
-El verdadero reto surgió con el rendimiento: el enfoque orientado a objetos era demasiado lento ("se quedaba colgado") debido a la explosión combinatoria y la creación masiva de objetos en el Heap. La solución requirió bajar el nivel de abstracción para acercarnos al metal.
+#### **3\. Conclusión**
 
-**¿Qué hicimos?**
-
-1. **Transformación a Bits (Bitwise Operations):**
-   Sustituimos la matriz de booleanos `boolean[][]` y los objetos `Coordinate` por un único primitivo `long` (64 bits). Cada celda del tablero se convirtió en un bit (0 o 1).
-2. **Detección de Colisiones en 1 Ciclo de CPU:**
-   En lugar de iterar por las coordenadas de una pieza para ver si choca, usamos la operación **AND** (`tablero & mascara`). Si el resultado es distinto de 0, hay colisión. Esto reduce la complejidad de  (tamaño de la pieza) a .
-3. **Romper la Simetría (Symmetry Breaking):**
-   Implementamos una poda lógica crítica: si tenemos 3 regalos idénticos, el algoritmo ingenuo intenta colocarlos en todas las permutaciones posibles (, , etc.). Nosotros forzamos un orden estricto, eliminando ramas redundantes y dividiendo el tiempo de ejecución por .
-4. **Caché de Pre-cálculo:**
-   Calculamos todas las máscaras posibles (posiciones válidas) de cada pieza **una sola vez** al inicio, en lugar de recalcularlas en cada paso de la recursión.
-
-**Principios y Fundamentos aplicados:**
-
-* **Eficiencia sobre Abstracción (en el Hot Path):**
-  Reconocimos que en el bucle crítico de un algoritmo exponencial, la orientación a objetos es costosa. Sacrificamos la legibilidad de `Coordinate` por la velocidad cruda de `long` y operadores bitwise (`<<`, `|`, `&`), reduciendo el tiempo de minutos a milisegundos.
-* **Fail-Fast (Fallo Rápido):**
-  Ordenamos las piezas de mayor a menor área. Es estadísticamente más probable detectar un callejón sin salida intentando colocar una pieza grande al principio que una pequeña al final, podando el árbol de decisión mucho antes.
-* **Gestión de Memoria (Stack vs Heap):**
-  Al usar primitivos (`long`), eliminamos la presión sobre el **Garbage Collector**. Todo el estado del tablero viaja en la pila (Stack) o registros de la CPU, evitando los `OutOfMemoryError` típicos de la recursión profunda con objetos.
+La separación entre la geometría (Forma) y la lógica de resolución (SolucionadorGranja) permite optimizaciones de bajo nivel (como el uso de máscaras de bits long para acelerar el chequeo de colisiones) sin afectar la legibilidad del resto del sistema. El uso de SRP y Factory Method en la carga de datos mantiene el código organizado y robusto frente al complejo formato de entrada.

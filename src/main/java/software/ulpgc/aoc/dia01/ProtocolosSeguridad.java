@@ -3,8 +3,8 @@ package software.ulpgc.aoc.dia01;
 //clase de utilidad
 public class ProtocolosSeguridad {
 
-    public static final ProtocoloSeguridad PART_A = (oldDial, movement, newDial) ->
-            newDial.posicion() == 0 ? 1 : 0;
+    public static final ProtocoloSeguridad PART_A = (oldDial, movement, newDial) -> //implementa la interfaz dial_anterior, cuanto se movio y el actual
+            newDial.posicion() == 0 ? 1 : 0; //Si el dial termino en la posición 0, devuelve 1 punto. Si no, devuelve 0
 
     public static final ProtocoloSeguridad PART_B = (oldDial, movement, newDial) -> {
         long start = oldDial.posicion();

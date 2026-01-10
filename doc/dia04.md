@@ -1,45 +1,29 @@
+### **Día 4 \- Departamento de Impresión**
 
-### Parte 1: Modelado del Dominio y Lógica Declarativa
+#### **1\. Introducción y Problema**
 
-En la primera fase, el objetivo fue representar un mapa bidimensional de un almacén y aplicar una regla de negocio espacial: identificar qué rollos de papel son accesibles basándose en la densidad de sus vecinos (menos de 4 obstáculos alrededor). La prioridad fue crear un modelo robusto que evitara los típicos errores de desbordamiento de índices en los bordes del mapa.
+El problema nos sitúa en el almacén de la imprenta, representado por una cuadrícula 2D con rollos de papel (@) y espacios vacíos (.). El objetivo es optimizar la logística contando cuántos rollos son "accesibles". Un rollo es accesible si tiene menos de 4 vecinos (de los 8 posibles: horizontales, verticales y diagonales) que también sean rollos.
 
-**¿Qué hicimos?**
+El reto se divide en dos estrategias distintas:
 
-1. Creamos **Objetos de Valor** (`Coordenada`, `ContenidoCasilla`) para dar semántica al problema, evitando el uso de tipos primitivos sueltos (`int`, `char`).
-2. Implementamos `CuadriculaAlmacen` con una **Estrategia de Relleno (Padding)**: añadimos automáticamente un borde de seguridad (puntos vacíos) alrededor del mapa real.
-3. Desarrollamos `OptimizadorMontacargas` utilizando **Programación Declarativa (Streams)** para filtrar las ubicaciones accesibles sin bucles anidados complejos.
-4. Utilizamos una **Fachada** (`CargadorImprenta`) para ocultar la complejidad de la instanciación.
+* **Parte A:** Contar cuántos rollos son accesibles en el estado inicial (foto estática).
+* **Parte B:** Simulación completa. Al retirar los rollos accesibles, los que estaban detrás podrían quedar libres. Debemos repetir el proceso en bucle hasta que no se puedan retirar más rollos.
 
-**Principios y Fundamentos aplicados:**
+#### **2\. Arquitectura General y principios**
 
-* **Alta Cohesión y Responsabilidad Única (SRP):**
-  Separamos claramente las responsabilidades: `CuadriculaAlmacen` solo gestiona la estructura de datos y la seguridad de los accesos; `OptimizadorMontacargas` contiene exclusivamente la regla de negocio ("¿es accesible?"). Ninguno sabe leer ficheros ni imprimir por consola.
-* **Programación Defensiva (Null Object / Padding):**
-  Al rodear el mapa con un "marco" de casillas vacías en `CuadriculaAlmacen`, eliminamos la necesidad de comprobar si una coordenada está en el borde (límites del array). Esto simplifica drásticamente la lógica de vecindad y previene errores tipo `IndexOutOfBoundsException`.
-* **Inmutabilidad:**
-  El uso de `record` para `Coordenada` y `CuadriculaAlmacen` garantiza que el estado del almacén no cambie de forma impredecible. Esto facilita el razonamiento sobre el código y lo hace seguro para hilos (thread-safe).
-* **Código Expresivo (Clean Code):**
-  En lugar de usar `if (grid[x][y] == '@')`, creamos un Enum `ContenidoCasilla`. Además, el uso de Streams permite leer el algoritmo casi en lenguaje natural: `.filter(noEstaBloqueado).count()`.
+* **Patrón Builder (FabricaEjecutador):** (Permite configurar paso a paso qué solucionador queremos y oculta la instancia concreta). He implementado la clase **FabricaEjecutador** que actúa como híbrido. Funciona como Builder para la configuración (desde, tipo) y como **Factory** para la creación (construir). Esto permite crear la instancia correcta (**SolucionadorImprentaA** o **SolucionadorImprentaB**) de forma transparente para el cliente.
 
+* **Inversión de Dependencias (DIP):** (Módulos de alto nivel no deben depender de módulos de bajo nivel, sino de abstracciones). El **Main** y el **cargador** no dependen de las clases concretas de solución. En su lugar, dependen de la interfaz funcional **Ejecutador**. Esto permite que el sistema ejecute la lógica estática (A) o dinámica (B) mediante polimorfismo sin cambiar el código cliente.
+* **Técnica de Robustez (Padding / Relleno):** En la clase **CuadriculaAlmacen**, agrego un borde de seguridad de puntos (.) alrededor del mapa original. Esto elimina la complejidad de comprobar los límites del array (IndexOutOfBounds) al buscar vecinos, simplificando la lógica y haciendo el código más limpio.
+* **Principio de Responsabilidad Única (SRP):** (Cada módulo o clase debe tener una sola razón para cambiar, reflejando la alta cohesión).
+  * **CargadorImprenta (DRY):** Simplifica la llamada desde el Main delegando en la Fábrica.
+  * **SolucionadorImprentaA:** Su responsabilidad es puramente lógica: recibe el almacén y ejecuta el cálculo único delegando en el optimizador. Ya no gestiona I/O.
+  * **SolucionadorImprentaB:** Su única responsabilidad es gestionar el bucle de la simulación. Recibe el modelo inicial y actualiza la referencia en cada iteración.
+  * **OptimizadorMontacargas (Clase de utilidad):** Contiene exclusivamente la regla de qué constituye un bloqueo (\>= 4 vecinos). Se ha convertido en una Clase de Utilidad (Static). Al no instanciarse objetos en cada vuelta del bucle de la Parte B, optimizamos el uso de memoria.
+  * **CuadriculaAlmacen:** Gestiona la estructura de la matriz. Para la Parte B, implementa la inmutabilidad: el método retirarRollos devuelve una nueva instancia de la cuadrícula, evitando efectos secundarios en el estado.
+  * **Coordenada (Alta Cohesión): (Enfocadas en una única tarea ):** Es un record que solo sabe calcular sus coordenadas vecinas.
+  * **ContenidoCasilla (Alta Cohesión):** Enum que encapsula la representación de los datos (ROLLO\_PAPEL, VACIO) y su parseo desde caracteres (@, .). Fíjate en el método desdeCaracter(char simbolo) dentro del Enum. El Problema: Sin este Enum, tendrías if (c \== '@') dispersos por todo tu código (en el parser, en el optimizador, en los tests). Si mañana cambia el símbolo a \#, tendrías que buscar y reemplazar en 20 sitios. La Solución: La lógica de "qué carácter significa qué cosa" está centralizada en un solo sitio. El resto del programa habla en términos de alto nivel (ROLLO\_PAPEL), no de detalles de bajo nivel (@).
 
+#### **3\. Conclusión**
 
-### Parte 2: Simulación Iterativa y Gestión de Estado
-
-En la segunda fase, el problema pasó de ser un análisis estático a una **simulación dinámica**. Al retirar rollos, se abren nuevos huecos, lo que permite retirar más rollos en cascada. El reto fue gestionar la evolución del estado del almacén sin romper la inmutabilidad ni duplicar la lógica de detección.
-
-**¿Qué hicimos?**
-
-1. Extendemos `CuadriculaAlmacen` con el método `retirarRollos`, que genera una **nueva instancia** del almacén en lugar de modificar la existente.
-2. Implementamos `SolucionadorImprentaB` con un bucle `while` que reevalúa el estado hasta que el sistema converge (no hay más cambios).
-3. Reutilizamos el 100% de la lógica de detección de `OptimizadorMontacargas` dentro del bucle de simulación.
-
-**Principios y Fundamentos aplicados:**
-
-* **Principio DRY (Don't Repeat Yourself):**
-  La regla compleja ("¿tiene menos de 4 vecinos?") no se volvió a escribir para la Parte 2. Simplemente instanciamos el `OptimizadorMontacargas` dentro del bucle de simulación. Si la regla de negocio cambia, solo hay que tocar un sitio.
-* **Principio Abierto/Cerrado (OCP):**
-  Añadimos la funcionalidad de simulación creando una nueva clase `SolucionadorImprentaB` e inyectándola mediante la Fábrica (`FabricaEjecutador`). No tuvimos que modificar el código de la Parte 1 ni romper la lógica existente para agregar la nueva característica.
-* **Programación Funcional (Manejo de Estado):**
-  Aunque la simulación implica cambio, mantuvimos la inmutabilidad de los objetos. El método `retirarRollos` devuelve un *nuevo* almacén con los cambios aplicados. Esto evita "efectos secundarios" (side effects) donde modificar el mapa en un paso podría corromper los cálculos del paso siguiente.
-* **Polimorfismo:**
-  Tanto la Parte A (estática) como la Parte B (dinámica) implementan la interfaz `Ejecutador`. El `Main` es agnóstico a la complejidad de la simulación; solo llama a `.ejecutar()`, confiando en que la implementación inyectada hará el trabajo correcto.
+Combina robustez algorítmica (Padding) con patrones de diseño (Factory/Builder). La aplicación estricta de DRY (centralizando el I/O en la fábrica) y la optimización de memoria (Optimizador estático) garantizan un código limpio, eficiente y fácil de testear.

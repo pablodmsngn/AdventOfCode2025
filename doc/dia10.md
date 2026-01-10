@@ -1,39 +1,33 @@
 
-### Parte 1: Búsqueda en Espacio de Estados (BFS) e Inmutabilidad
+### **Día 10 \- Fábrica**
 
-En la primera fase, el problema consistía en encontrar la secuencia mínima de botones para configurar un patrón de luces. Dado que el orden de los botones no importa (conmutatividad) y pulsarlos dos veces anula la acción (comportamiento XOR), el problema se modeló como la búsqueda del camino más corto en un grafo de estados finitos.
+#### **1\. Introducción y Problema**
 
-**¿Qué hicimos?**
+El escenario nos sitúa en una fábrica donde debemos reparar máquinas complejas. Cada máquina tiene un conjunto de botones y un panel de indicadores con luces y voltajes asociados. Al pulsar un botón, se alteran estados específicos (luces encendidas/apagadas) y se incrementan los voltajes en ciertos componentes.  
+El reto se divide en dos partes de optimización combinatoria:
 
-1. Modelamos el hardware con records inmutables: `Indicador` (estado de luces/voltajes) y `Boton` (máscara de cambio), asegurando que cada pulsación genere un nuevo estado sin efectos secundarios.
-2. Implementamos un algoritmo **BFS (Búsqueda en Anchura)** en `Maquina`: exploramos nivel por nivel las combinaciones de botones, garantizando que la primera solución encontrada sea la óptima (mínimo número de pulsaciones).
-3. Utilizamos un `Set` de estados visitados para podar el árbol de búsqueda y evitar ciclos infinitos o cálculos redundantes.
-4. Creamos `ControladorFabrica` como fachada para orquestar la ejecución sobre múltiples máquinas.
+* **Parte A:** Encontrar la secuencia mínima de pulsaciones de botones para que las luces coincidan exactamente con una configuración objetivo, ignorando los voltajes (resuelto mediante BFS).
+* **Parte B:** El problema se complica; debemos cumplir requisitos estrictos de voltaje acumulado. Esto requiere una búsqueda recursiva más profunda, resolviendo primero la paridad (luces) y luego ajustando los voltajes restantes matemáticamente.
 
-**Principios y Fundamentos aplicados:**
+#### **2\. Arquitectura General y principios**
 
-* BFS:
-  Transformamos un problema de configuración física en un problema de "camino más corto" en un grafo no ponderado. Esto nos permite asegurar matemáticamente la optimalidad de la solución.
-* **Inmutabilidad:**
-  El uso de `record` para `Indicador` es crucial. Al aplicar un botón, no mutamos el objeto actual, sino que devolvemos uno nuevo (`return new Indicador(...)`). Esto simplifica enormemente el rastreo de estados en la cola del BFS y evita errores de concurrencia o estado compartido.
-* **Principio de Responsabilidad Única (SRP):**
-  `Boton` solo sabe qué índices afecta; `Indicador` solo sabe mantener datos y compararse; y `Maquina` encapsula la complejidad algorítmica de la búsqueda.
+* **Patrón Factory Method: (En lugar de usar directamente el constructor... se llama a un método estático que encapsula la creación del objeto).**  
+  He aplicado este patrón en todas las clases de dominio (Boton, Maquina, Indicador, Estado) utilizando métodos estáticos desde() o deCaracter().
+  * Por ejemplo, Boton.desde(String str) encapsula la lógica de "parsear" una cadena de texto compleja y **convertirla en un objeto válido. Esto limpia el código cliente y centraliza la lógica de creación.**
+* **Principio de Responsabilidad Única (SRP): (Cada módulo o clase debe tener una sola razón para cambiar, reflejando la alta cohesión).**  
+  He distribuido las responsabilidades para cumplir este principio:
+  * **CargadorEntrada (Principio DRY):** (Cada pieza de conocimiento... debería tener una representación única). Su única responsabilidad es la infraestructura de I/O (lectura de ficheros), evitando mezclar lógica de negocio con acceso a disco.
+  * **Maquina (Lógica de Negocio):** Centraliza los algoritmos de resolución (BFS para la Parte A y Recursividad para la Parte B). No sabe leer ficheros ni imprimir resultados, solo calcular costes.
+  * **ControladorFabrica (Abstracción): (Consiste en ocultar los detalles complejos detrás de una interfaz simple).** Oculta la complejidad de la iteración y la agregación de resultados **(uso de Streams y sumatorios)** detrás de métodos directos como **ejecutarParte1**() y **ejecutarParte2**(). El Main no sabe cómo se resuelven los algoritmos de cada máquina (BFS o recursividad), solo pide el resultado total acumulad
+* **Fundamento de Alta Cohesión: (Refiere a la idea de que las partes de un módulo o componente deben estar estrechamente relacionadas y enfocadas en una única tarea).**
+  * **Indicador**: Es un ejemplo claro. Agrupa datos estrechamente ligados (estados de luces y voltajes). Sus métodos (reducirVoltajesCon, mitadVoltajes) operan exclusivamente sobre estos datos para generar nuevos estados, sin dependencias externas.
+  * **Boton**: Solo contiene el conjunto de índices que afecta. Es un componente atómico enfocado en una sola tarea.
+* **Inmutabilidad y Value Objects:**  
+  He utilizado records de Java (Boton, Indicador, Maquina) para garantizar la inmutabilidad.  
+  En algoritmos de búsqueda (como el BFS en Maquina.java), **es crucial que el estado (Indicador) no cambie inesperadamente**. Métodos como **aplicarBoton** devuelven una nueva instancia de Indicador en lugar de modificar el existente, previniendo efectos secundarios (Side Effects) y facilitando la recursividad segura.
+* **Abstracción: (Consiste en ocultar los detalles complejos detrás de una interfaz simple).**  
+  A través del Enum **Estado** y su método deCaracter, ocultamos la representación de bajo nivel (\# o .) detrás de conceptos semánticos (ENCENDIDO, APAGADO). El resto del sistema trabaja con estados lógicos, no con caracteres.
 
-### Parte 2: Recursividad, Memoización y Optimización de Bits
+#### **3\. Conclusión**
 
-En la segunda fase, el problema cambió de estados binarios (luces) a estados enteros (voltajes). El espacio de búsqueda se volvió infinito para un BFS tradicional. La solución requirió un enfoque de "Divide y Vencerás" basado en bits y una optimización agresiva de rendimiento.
-
-**¿Qué hicimos?**
-
-1. Cambiamos el algoritmo a **Recursividad con Memoización**: Descompusimos el problema de los voltajes en una serie de problemas de paridad (bits). Resolvemos la paridad usando la lógica de la Parte 1, restamos el efecto, dividimos por 2 y recursamos.
-2. Implementamos **Caché (Memoización)**: Utilizamos un `Map<Indicador, Integer>` para almacenar los resultados de objetivos de voltaje ya resueltos, evitando recalcular ramas enteras del árbol recursivo.
-3. **Optimización con Máscaras de Bits (Bitmasks):** Identificamos que el uso de `Set<Set<Boton>>` era demasiado lento y consumía mucha memoria. Reemplazamos los conjuntos de botones por un solo primitivo `long` (donde cada bit representa si un botón está pulsado o no). Esto redujo el tiempo de ejecución de minutos a milisegundos y el consumo de memoria drásticamente.
-
-**Principios y Fundamentos aplicados:**
-
-* **Divide y Vencerás (Descomposición Binaria):**
-  Convertimos un problema complejo de enteros en una secuencia de problemas simples de booleanos (luces). Al resolver bit a bit (paridad), reducimos la complejidad exponencial a logarítmica respecto al valor del voltaje.
-* **Programación Dinámica (Memoización):**
-  Almacenar los resultados de sub-problemas (`cache.put(objetivo, resultado)`) transforma una complejidad exponencial en lineal respecto al número de sub-estados únicos, un patrón clásico para optimizar recursividad.
-* **Optimización de Bajo Nivel (Primitive Obsession justificada):**
-  Aunque la programación orientada a objetos prefiere estructuras ricas, en el "hot path" (bucle interior de un algoritmo recursivo), el uso de primitivos (`long`) y operaciones a nivel de bit (`mask | (1L << i)`) es órdenes de magnitud más rápido que la manipulación de objetos `Set` y `Stream`, demostrando cuándo es correcto sacrificar abstracción por rendimiento.
+El uso extensivo de Factory Methods facilita la creación de objetos desde texto plano, mientras que la separación de responsabilidades permite que el algoritmo de resolución (Maquina) sea independiente de la entrada de datos (Cargador), resultando en un sistema robusto, mantenible y libre de efectos secundarios gracias a la inmutabilidad.

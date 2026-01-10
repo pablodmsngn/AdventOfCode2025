@@ -1,49 +1,28 @@
 
+### **Día 3 \- Vestíbulo**
 
-### Parte 1: El Núcleo y la Estructura Base
+#### **1\. Introducción y Problema**
 
-En la primera fase, el objetivo era procesar secuencias de dígitos (bancos de baterías) para encontrar la mayor "sacudida" posible seleccionando **exactamente dos** baterías, respetando su orden relativo. La prioridad fue desacoplar el algoritmo de búsqueda de la infraestructura de lectura.
+El escenario es el vestíbulo principal donde las escaleras mecánicas necesitan energía de emergencia. Disponemos de bancos de baterías representados por secuencias de dígitos (ej. "98765..."). El objetivo es seleccionar una sub-secuencia de dígitos para formar el número(sacudida) más alto posible, respetando el orden de aparición. El reto se divide en dos partes:
 
-**¿Qué hicimos?**
+* **Parte A:** Debemos seleccionar exactamente 2 baterías (dígitos) de cada banco para maximizar la energía.
+* **Parte B:** La fricción estática requiere más potencia, por lo que debemos seleccionar exactamente 12 baterías de cada banco, siguiendo la misma lógica de maximización.
 
-1. Definimos la interfaz funcional `ProtocoloEnergia` (el contrato) para abstraer la lógica de cálculo.
-2. Implementamos el algoritmo en `EstrategiasBusqueda`, aplicando una lógica **Greedy** (codiciosa) para maximizar el resultado.
-3. Creamos `ControladorEscalera` para orquestar el proceso (Map-Reduce) sin conocer los detalles matemáticos.
-4. Implementamos `ConstructorEscalera` (Builder) para encapsular la complejidad de la lectura del fichero (`InputStream`).
+Para resolver esto, he implementado un algoritmo Greedy (Voraz) que busca el dígito más alto posible en cada paso, asegurándose siempre de que queden suficientes dígitos a la derecha para completar la longitud requerida (N).
 
-**Principios y Fundamentos aplicados:**
+#### **2\. Arquitectura General y principios**
 
-* **Inversión de Dependencias (DIP):**
-  El `ControladorEscalera` (alto nivel) no depende de la clase concreta `EstrategiasBusqueda` (bajo nivel). Depende de la abstracción `ProtocoloEnergia`. Como indica la teoría, esto permite cambiar el algoritmo sin tocar el orquestador.
-* **Alta Cohesión:**
-  `BancoBaterias` es un record inmutable que solo transporta datos. `EstrategiasBusqueda` contiene únicamente la lógica matemática pura, sin mezclarla con lectura de ficheros o impresión por pantalla. Cada módulo está enfocado en una única tarea .
-* **Patrón Strategy:**
-  Aunque no es un principio SOLID per se, es la implementación directa del DIP y OCP. Nos permite inyectar el "cerebro" del cálculo (`planA`) en el momento de la ejecución, separando el *qué* se hace del *cómo* se hace.
-* **Código Expresivo:**
-  Gracias al Builder, en el `Main` podemos leer: `.desde(input).usando(planA).construir()`. Esto convierte la configuración técnica en una frase legible, facilitando la comprensión del flujo de datos .
+* **Inversión de Dependencias (DIP):** (Módulos de alto nivel no deben depender de módulos de bajo nivel, sino de abstracciones).La clase **ControladorEscalera** (alto nivel) no contiene la lógica del algoritmo voraz. En su lugar, depende de la interfaz funcional **ProtocoloEnergia**. Esto permite que el controlador calcule la energía total sin saber si está resolviendo la Parte A (2 dígitos) o la Parte B (12 dígitos).
+* **Principio Abierto/Cerrado (OCP):** (Las clases deben estar abiertas para la extensión, pero cerradas para la modificación).Gracias al diseño anterior, la clase **ControladorEscalera** queda cerrada a modificaciones. Si cambian los requisitos (ej. seleccionar 50 dígitos), solo extiendo la funcionalidad inyectando una nueva lambda en el Main que configure el algoritmo Greedy con el nuevo parámetro, sin tocar el código fuente del controlador.
+* **Patrón Builder (Separación de Construcción y Representación)(Permite crear el objeto paso a paso en lugar de hacerlo todo de golpe en un constructor gigante.):**  
+  He implementado la clase **ConstructorEscalera** para gestionar la creación del objeto **ControladorEscalera**.
+   * Esto permite una configuración paso a paso (from, use, construir) y valida que todos los componentes necesarios (fichero y protocolo) estén presentes antes de instanciar el objeto, garantizando un estado consistente.
+* **Principio de Responsabilidad Única (SRP):** (Cada módulo o clase debe tener una sola razón para cambiar, reflejando la alta cohesión).  
+  Cada componente tiene un foco único:
+   * **CargadorEntrada (Principio DRY):** (Cada pieza de conocimiento... debería tener una representación única). Centraliza la lógica de I/O y uso del Builder para no duplicar código en los Mains.
+   * **BancoBaterias (Alta Cohesión): (Enfocadas en una única tarea )**. Es un record que solo almacena la secuencia de datos del banco (Value Object).
+   * **EstrategiasBusqueda (Algoritmia greedy):** Contiene la lógica matemática del algoritmo Greedy como un método estático, separando el "cómo calcular" del "quién tiene los datos".
 
+#### **3\. Conclusión**
 
-
-### Parte 2: La Extensión y la Generalización
-
-En la segunda fase, el requerimiento cambió drásticamente en magnitud: ahora debíamos seleccionar **exactamente doce** baterías en lugar de dos. Esto planteó dos retos: cambiar la lógica de búsqueda y solucionar el desbordamiento de memoria (un número de 12 cifras no cabe en un `int`).
-
-**¿Qué hicimos?**
-
-1. **Generalizamos** el algoritmo `Greedy` para aceptar un parámetro  (número de dígitos) en lugar de tener el "2" escrito a fuego.
-2. Refactorizamos los tipos de datos de `int` a `long` para soportar números grandes (Robustez).
-3. Usamos una **Lambda Adapter** en el `Main` para reutilizar el método genérico adaptándolo a la interfaz existente.
-4. Reutilizamos el 100% de la infraestructura de carga y control.
-
-**Principios y Fundamentos aplicados:**
-
-* **Principio Abierto Cerrado (OCP):**
-  "Las clases deben estar abiertas para la extensión, pero cerradas para la modificación".
-  *Cómo lo logramos:* Para la Fase 2, no tuvimos que crear una clase `Estrategia12Digitos` ni modificar el bucle del `Controlador`. Simplemente configuramos el sistema existente con un nuevo parámetro () a través de la inyección de dependencias en el Main.
-* **Generalización (Abstracción Paramétrica):**
-  En lugar de escribir un método para 2 dígitos y otro para 12, creamos `Greedy(secuencia, n)`. Esto eleva el nivel de abstracción del algoritmo, haciéndolo capaz de resolver una familia de problemas en lugar de uno solo.
-* **Principio DRY (Don't Repeat Yourself):**
-  "Cada pieza de conocimiento debería tener una representación única".
-  *Cómo lo logramos:* Al usar el método generalizado y la misma clase `CargadorEscalera`, no duplicamos código. La lógica de cómo leer el fichero, cómo parsearlo y cómo sumar los resultados es idéntica para ambas fases.
-* **Robustez y Tipado:**
-  Al detectar que 12 dígitos causarían un *overflow*, cambiamos el sistema a `long`. Esto demuestra un diseño consciente de las limitaciones de la máquina, asegurando que la extensión funcional (más dígitos) no rompa la integridad técnica (resultados negativos o errores).
+La arquitectura demuestra cómo patrones como el Builder y principios como DIP permiten manejar lógica algorítmica compleja (Greedy) de forma limpia. El sistema resultante tiene un Bajo Acoplamiento, es fácil de testear y permite cambiar la configuración de la escalera (Parte A vs Parte B) simplemente cambiando la estrategia inyectada.
