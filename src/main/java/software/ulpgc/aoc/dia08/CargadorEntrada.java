@@ -29,7 +29,7 @@ public class CargadorEntrada {
     private static Circuito parsearLinea(String linea) {
         // Formato: "162,817,812"
         int[] coords = Arrays.stream(linea.split(","))
-                .map(String::trim)
+                .map(String::trim) //quita los espacios
                 .mapToInt(Integer::parseInt)
                 .toArray();
         // Inicialmente, cada caja es su propio circuito independiente
