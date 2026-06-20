@@ -1,11 +1,15 @@
-package software.ulpgc.aoc.day01;
+package software.ulpgc.aoc.day01.control;
 
-// utility class
+import software.ulpgc.aoc.day01.model.SecurityProtocol;
+
+
 public class SecurityProtocols {
 
-    public static final SecurityProtocol PART_A = (oldDial, movement, newDial) -> // implements the interface: previous dial, how much it moved and the current one
-            newDial.position() == 0 ? 1 : 0; // If the dial ended at position 0, returns 1 point. Otherwise, returns 0
+    //a:1 punto si el giro termina exactamente en 0
+    public static final SecurityProtocol PART_A = (oldDial, movement, newDial) ->
+            newDial.position() == 0 ? 1 : 0;
 
+    //b:cuenta cuantas veces el giro cruza el 0
     public static final SecurityProtocol PART_B = (oldDial, movement, newDial) -> {
         long start = oldDial.position();
         long end = start + movement;

@@ -1,4 +1,8 @@
-package software.ulpgc.aoc.day01;
+package software.ulpgc.aoc.day01.control;
+
+import software.ulpgc.aoc.day01.model.Dial;
+import software.ulpgc.aoc.day01.model.Instruction;
+import software.ulpgc.aoc.day01.model.SecurityProtocol;
 
 
 public class Safe {
@@ -12,23 +16,20 @@ public class Safe {
         this.protocol = protocol;
     }
 
+
     public void rotate(String instruction) {
-        if (instruction == null || instruction.trim().isEmpty()) return;
-        char direction = instruction.charAt(0);
-        int quantity = Integer.parseInt(instruction.substring(1));
-        int movement = (direction == 'L') ? -quantity : quantity;
+        Instruction.of(instruction).ifPresent(this::apply);
+    }
+
+
+    public void apply(Instruction instruction) {
+        int movement = instruction.movement();
         Dial nextDial = dial.rotate(movement);
         this.zeroCount += protocol.calculatePoints(this.dial, movement, nextDial);
         this.dial = nextDial;
     }
 
-
-
-
-
     public int getZeroCount() {
         return zeroCount;
     }
-
-
 }

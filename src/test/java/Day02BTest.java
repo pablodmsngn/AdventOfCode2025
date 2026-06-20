@@ -1,4 +1,5 @@
-import software.ulpgc.aoc.day02.*;
+import software.ulpgc.aoc.day02.model.*;
+import software.ulpgc.aoc.day02.control.*;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import java.util.stream.Stream;

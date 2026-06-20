@@ -1,6 +1,6 @@
 import org.junit.jupiter.api.Test;
-import software.ulpgc.aoc.day01.Safe;
-import software.ulpgc.aoc.day01.SecurityProtocols;
+import software.ulpgc.aoc.day01.control.Safe;
+import software.ulpgc.aoc.day01.control.SecurityProtocols;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
