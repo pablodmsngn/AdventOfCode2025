@@ -1,5 +1,4 @@
-package software.ulpgc.aoc.day04;
-
+package software.ulpgc.aoc.day04.model;
 
 public enum CellContent {
     EMPTY, PAPER_ROLL;

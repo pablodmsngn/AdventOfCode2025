@@ -1,10 +1,10 @@
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import software.ulpgc.aoc.day03.BatteryBank;
-import software.ulpgc.aoc.day03.StaircaseController;
-import software.ulpgc.aoc.day03.SearchStrategies;
-import software.ulpgc.aoc.day03.EnergyProtocol;
+import software.ulpgc.aoc.day03.model.BatteryBank;
+import software.ulpgc.aoc.day03.control.StaircaseController;
+import software.ulpgc.aoc.day03.control.SearchStrategies;
+import software.ulpgc.aoc.day03.model.EnergyProtocol;
 
 import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;

@@ -1,9 +1,9 @@
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import software.ulpgc.aoc.day04.WarehouseGrid;
-import software.ulpgc.aoc.day04.Executor;
-import software.ulpgc.aoc.day04.a.PrintShopSolverA;
-import software.ulpgc.aoc.day04.b.PrintShopSolverB;
+import software.ulpgc.aoc.day04.model.WarehouseGrid;
+import software.ulpgc.aoc.day04.model.Executor;
+import software.ulpgc.aoc.day04.control.PrintShopSolverA;
+import software.ulpgc.aoc.day04.control.PrintShopSolverB;
 
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;

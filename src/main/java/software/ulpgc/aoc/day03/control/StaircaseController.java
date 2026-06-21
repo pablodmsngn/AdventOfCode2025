@@ -1,4 +1,7 @@
-package software.ulpgc.aoc.day03;
+package software.ulpgc.aoc.day03.control;
+
+import software.ulpgc.aoc.day03.model.BatteryBank;
+import software.ulpgc.aoc.day03.model.EnergyProtocol;
 
 import java.util.List;
 

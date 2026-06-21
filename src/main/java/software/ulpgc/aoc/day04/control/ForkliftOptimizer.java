@@ -1,7 +1,10 @@
-package software.ulpgc.aoc.day04;
+package software.ulpgc.aoc.day04.control;
+
+import software.ulpgc.aoc.day04.model.CellContent;
+import software.ulpgc.aoc.day04.model.Coordinate;
+import software.ulpgc.aoc.day04.model.WarehouseGrid;
 
 import java.util.stream.Stream;
-
 
 /**
  * REFACTORING:

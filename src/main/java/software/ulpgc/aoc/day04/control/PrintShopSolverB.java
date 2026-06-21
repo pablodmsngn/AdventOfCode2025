@@ -1,9 +1,8 @@
-package software.ulpgc.aoc.day04.b;
+package software.ulpgc.aoc.day04.control;
 
-import software.ulpgc.aoc.day04.Coordinate;
-import software.ulpgc.aoc.day04.WarehouseGrid;
-import software.ulpgc.aoc.day04.Executor;
-import software.ulpgc.aoc.day04.ForkliftOptimizer;
+import software.ulpgc.aoc.day04.model.Coordinate;
+import software.ulpgc.aoc.day04.model.Executor;
+import software.ulpgc.aoc.day04.model.WarehouseGrid;
 
 import java.util.List;
 

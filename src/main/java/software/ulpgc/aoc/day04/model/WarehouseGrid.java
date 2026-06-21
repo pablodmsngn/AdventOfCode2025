@@ -1,11 +1,9 @@
-package software.ulpgc.aoc.day04;
-
+package software.ulpgc.aoc.day04.model;
 
 import java.util.List;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import java.util.ArrayList;
-
 
 public record WarehouseGrid(List<List<CellContent>> grid) {
 
@@ -14,7 +12,6 @@ public record WarehouseGrid(List<List<CellContent>> grid) {
     }
 
     private int width() {
-
         return grid.get(0).size() - 2;
     }
 

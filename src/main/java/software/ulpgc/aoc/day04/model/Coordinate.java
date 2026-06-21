@@ -1,7 +1,6 @@
-package software.ulpgc.aoc.day04;
+package software.ulpgc.aoc.day04.model;
 
 import java.util.stream.Stream;
-
 
 public record Coordinate(int row, int column) {
     public Stream<Coordinate> neighbors() {

@@ -1,4 +1,4 @@
-package software.ulpgc.aoc.day03;
+package software.ulpgc.aoc.day03.control;
 
 public class SearchStrategies {
 
