@@ -1,10 +1,10 @@
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import software.ulpgc.aoc.day06.InputLoader;
-import software.ulpgc.aoc.day06.CompactorController;
-import software.ulpgc.aoc.day06.Operation;
-import software.ulpgc.aoc.day06.Operator;
-import software.ulpgc.aoc.day06.a.VerticalAnalyzer;
+import software.ulpgc.aoc.day06.application.InputLoader;
+import software.ulpgc.aoc.day06.control.CompactorController;
+import software.ulpgc.aoc.day06.model.Operation;
+import software.ulpgc.aoc.day06.model.Operator;
+import software.ulpgc.aoc.day06.control.VerticalAnalyzer;
 
 import java.util.List;
 

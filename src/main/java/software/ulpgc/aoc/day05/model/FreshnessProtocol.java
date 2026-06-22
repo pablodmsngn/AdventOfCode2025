@@ -1,4 +1,4 @@
-package software.ulpgc.aoc.day05;
+package software.ulpgc.aoc.day05.model;
 
 import java.util.List;
 

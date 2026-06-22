@@ -1,21 +1,17 @@
-package software.ulpgc.aoc.day05;
+package software.ulpgc.aoc.day05.control;
 
+import software.ulpgc.aoc.day05.model.FreshnessProtocol;
+import software.ulpgc.aoc.day05.model.Range;
 
-import java.io.BufferedReader;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class AuditBuilder {
     private List<String> lines;
     private FreshnessProtocol protocol;
 
-    public AuditBuilder from(InputStream stream) {
-        this.lines = new BufferedReader(new InputStreamReader(stream))
-                .lines()
-                .collect(Collectors.toList());
+    public AuditBuilder from(List<String> lines) {
+        this.lines = lines;
         return this;
     }
 
@@ -25,11 +21,13 @@ public class AuditBuilder {
     }
 
     public InventoryAuditor build() {
+        if (lines == null) throw new IllegalStateException("Missing data source (.from)");
+
         List<Range> ranges = new ArrayList<>();
         List<Long> ids = new ArrayList<>();
         boolean readingRanges = true;
-        for (String line : lines) {
-            line = line.trim();
+        for (String raw : lines) {
+            String line = raw.trim();
             if (line.isEmpty()) {
                 readingRanges = false;
                 continue;
@@ -43,5 +41,3 @@ public class AuditBuilder {
         return new InventoryAuditor(ranges, ids, protocol);
     }
 }
-
-

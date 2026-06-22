@@ -1,7 +1,7 @@
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import software.ulpgc.aoc.day05.InventoryAuditor;
-import software.ulpgc.aoc.day05.Range;
+import software.ulpgc.aoc.day05.control.InventoryAuditor;
+import software.ulpgc.aoc.day05.model.Range;
 
 import java.util.ArrayList;
 import java.util.List;

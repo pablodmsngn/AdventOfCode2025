@@ -1,8 +1,6 @@
-package software.ulpgc.aoc.day05;
-
+package software.ulpgc.aoc.day05.model;
 
 public record Range(long min, long max) implements Comparable<Range> {
-
 
     public static Range fromText(String text) {
         String[] parts = text.split("-");
@@ -21,7 +19,6 @@ public record Range(long min, long max) implements Comparable<Range> {
     public int compareTo(Range other) {
         return Long.compare(this.min, other.min);
     }
-
 
     public boolean overlapsWith(Range other) {
         return this.max >= other.min && this.min <= other.max;

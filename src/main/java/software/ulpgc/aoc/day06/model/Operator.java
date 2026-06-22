@@ -1,5 +1,4 @@
-package software.ulpgc.aoc.day06;
-
+package software.ulpgc.aoc.day06.model;
 
 import java.util.function.BinaryOperator;
 
@@ -22,6 +21,4 @@ public enum Operator implements BinaryOperator<Long> {
     public Long apply(Long a, Long b) {
         return this.equals(ADD) ? a + b : a * b;
     }
-
-
 }

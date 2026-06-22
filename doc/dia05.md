@@ -2,25 +2,65 @@
 
 #### **1\. Introducción y Problema**
 
-El problema nos sitúa en la cafetería de los elfos, donde una base de datos de inventario corrupta impide distinguir los ingredientes frescos. La entrada consta de una lista de rangos de frescura (ej. "3-5", "10-20") y una lista de IDs de ingredientes específicos.  
-El reto se divide en dos partes que requieren enfoques algorítmicos distintos:
+El problema nos sitúa en la cafetería de los elfos, donde una base de datos de inventario corrupta impide distinguir los ingredientes frescos. La entrada consta de una lista de **rangos de frescura** (ej. `3-5`, `10-20`) y, tras una línea en blanco, una lista de **IDs de ingredientes** concretos. El reto tiene dos partes que comparten la entrada (cargar el fichero, separar rangos de IDs, encapsular la matemática de intervalos) y solo cambian *cómo* se explotan los rangos:
 
-* Parte A: Determinar cuántos de los IDs de la lista específica caen dentro de al menos un rango de frescura.
-* Parte B: Ignorar la lista de IDs específica y calcular la cobertura total de los rangos. Es decir, cuántos números enteros únicos están cubiertos por la unión de todos los rangos, teniendo en cuenta que estos pueden solaparse (ej. "10-15" y "12-20" deben fusionarse para no contar dos veces los números compartidos).
+* **Parte A:** contar cuántos de los IDs de la lista caen dentro de **al menos un** rango de frescura.
+* **Parte B:** ignorar la lista de IDs y calcular la **cobertura total**: cuántos enteros únicos cubre la unión de todos los rangos, fusionando los que se solapan (ej. `10-15` y `12-20` no deben contar dos veces los números compartidos).
 
-#### **2\. Arquitectura General y principios**
+Como lo único que cambia es la forma de explotar los rangos, la regla se modela como una abstracción (`FreshnessProtocol`) con implementaciones intercambiables: la política estándar (A) y un protocolo nulo (B), que delega toda la potencia en el algoritmo de fusión de intervalos.
 
-* **Inversión de Dependencias (DIP):** (Módulos de alto nivel no deben depender de módulos de bajo nivel, sino de abstracciones). La clase principal **AuditorInventario** no contiene la lógica de validación.. En su lugar, depende de la abstracción **ProtocoloFrescura** (Interfaz Funcional). Esto permite definir qué significa "ser fresco" (Parte A) o inyectar un comportamiento nulo (Parte B) sin modificar la clase auditora.
-* **Principio Abierto/Cerrado (OCP):** (Las clases deben estar abiertas para la extensión, pero cerradas para la modificación). Gracias al diseño anterior, **AuditorInventario** está cerrado a cambios. Si mañana la regla de frescura cambia (ej. excluir los números pares), simplemente inyectamos una nueva lambda en el Main que implemente la nueva regla, sin tocar el núcleo del sistema.
-* **Patrón Builder (ConstructorAuditoria):** (Permite crear el objeto paso a paso en lugar de hacerlo todo de golpe en un constructor gigante). He separado la compleja lógica de parseo del archivo de texto (separar rangos de IDs sueltos) de la lógica de negocio. **ConstructorAuditoria** configura paso a paso el Stream, el protocolo y finalmente construye el objeto AuditorInventario en un estado válido y consistente.
-* **Principio de Responsabilidad Única (SRP):** (Cada módulo o clase debe tener una sola razón para cambiar).  
-  He distribuido las responsabilidades para maximizar la cohesión:
-  * **CargadorEntrada (Principio DRY):** (No repetir código). Centraliza la gestión del I/O (lectura de recursos) y el uso del Builder, evitando duplicidad en los Main.
-  * **Rango (Alta Cohesión):** (Partes estrechamente relacionadas enfocadas en una tarea). Es un record que encapsula toda la matemática de intervalos. Sabe si contiene un número, si se solapa con otro rango y cómo fusionarse con otro. Al mover esta lógica aquí, el auditor queda limpio.
-  * **AuditorInventario:** Orquesta el proceso. Para la Parte B, implementa el algoritmo de **fusión de intervalos** (ordenar y unir rangos superpuestos) para calcular la cobertura total eficientemente.
-  * **ProtocoloFrescura (Abstracción)**(Consiste en ocultar los detalles complejos detrás de una interfaz  
-    simple.): Define el contrato funcional para verificar la validez de un ID.
+#### **2\. Arquitectura por capas**
 
-#### **3\. Conclusión**
+He reorganizado el día en las mismas **cuatro capas** que los días anteriores, con las dependencias apuntando siempre hacia el dominio:
 
-El uso del patrón Builder facilita la carga de datos heterogéneos (rangos mezclados con IDs), mientras que DIP mantiene el sistema desacoplado y flexible ante cambios en las reglas de validación.
+```
+software.ulpgc.aoc.day05
+├── model         (dominio puro, no depende de nadie)
+│   ├── Range
+│   └── FreshnessProtocol
+├── io            (frontera de entrada)
+│   └── AuditLoader
+├── control       (orquesta el caso de uso)
+│   ├── InventoryAuditor
+│   └── AuditBuilder
+└── application   (detalles y arranque)
+    ├── ResourceAuditLoader
+    └── a/Main05A, b/Main05B
+```
+
+**Dirección de dependencias:** `application → control → (io + model)` y `io → model`. El dominio (`model`) no importa nada del proyecto.
+
+#### **3\. Explicación clase a clase**
+
+**Capa `model` (dominio puro)**
+
+* **`Range`** *(record)*: un *Value Object* que encapsula toda la matemática de intervalos. Sabe si contiene un número (`contains`), su longitud (`length`), si se solapa con otro rango (`overlapsWith`) y cómo fusionarse con otro (`merge`), además de su orden natural (`Comparable`). Al concentrar aquí esta lógica → **alta cohesión** y el auditor queda limpio.
+* **`FreshnessProtocol`** *(interfaz funcional)*: la **abstracción** de la regla de frescura (`boolean isFresh(long ingredientId, List<Range> ranges)`). Vive en el dominio porque no depende de ninguna otra capa; es la pieza que permite el DIP y elegir el comportamiento (A vs B) por polimorfismo.
+
+**Capa `io` (frontera de entrada)**
+
+* **`AuditLoader`** *(interfaz)*: define *qué* se necesita de la entrada (`List<String> loadLines()`) sin atarse a *cómo* se lee. El arranque depende de esta abstracción, no del detalle de lectura.
+
+**Capa `control` (orquesta el caso de uso)**
+
+* **`InventoryAuditor`**: el caso de uso. Recibe los rangos, los IDs y el `FreshnessProtocol` inyectado. `audit()` cuenta los IDs frescos delegando en el protocolo; `calculateTotalCoverage()` implementa el algoritmo de **fusión de intervalos** (ordenar y unir solapados) para la cobertura total de la Parte B.
+* **`AuditBuilder`** *(Patrón Builder, interfaz fluida)*: construye el `InventoryAuditor` paso a paso (`from(lines).using(protocol).build()`). Ya **no lee ficheros**: recibe las líneas ya cargadas y se encarga de **parsear** las dos secciones (rangos antes de la línea en blanco, IDs después), garantizando que nunca se cree un auditor incompleto.
+
+**Capa `application` (detalles y arranque)**
+
+* **`ResourceAuditLoader`** *(implements `AuditLoader`)*: el detalle de bajo nivel; lee un recurso del classpath y devuelve la lista de líneas (`reader.lines().toList()`). Es intercambiable por otra fuente de datos.
+* **`Main05A` / `Main05B`** *(composition root)*: el único punto donde se eligen el cargador y el protocolo y se conectan con el Builder. La Parte A inyecta `standardPolicy` (`(id, ranges) -> ranges.stream().anyMatch(r -> r.contains(id))`) y llama a `audit()`; la Parte B inyecta un protocolo nulo y llama a `calculateTotalCoverage()`.
+
+#### **4\. Principios y diseños aplicados**
+
+* **Inversión de Dependencias (DIP):** `InventoryAuditor` depende de la abstracción `FreshnessProtocol`, no de una regla concreta; el arranque depende de la interfaz `AuditLoader`, no de cómo se leen los datos.
+* **Abierto/Cerrado (OCP):** cambiar la regla de frescura (ej. excluir pares) es inyectar otra lambda; el núcleo queda cerrado a modificación y abierto a extensión por polimorfismo.
+* **Responsabilidad Única (SRP):** `Range` guarda la matemática de intervalos, `InventoryAuditor` orquesta el cálculo, `AuditBuilder` solo parsea y ensambla, `ResourceAuditLoader` solo lee I/O.
+* **Patrón Builder + interfaz fluida:** `AuditBuilder` arma el auditor paso a paso y valida que esté completo antes de crearlo.
+* **Segregación de Interfaces (ISP):** `AuditLoader` expone un único método cohesivo (`loadLines`).
+* **Inyección de Dependencias (DI) / Strategy:** el cargador y el protocolo se pasan desde fuera; el comportamiento se elige sin tocar el núcleo.
+* **Alta Cohesión y DRY:** la matemática de intervalos está centralizada en `Range`, y la lectura de entrada en una única implementación reutilizable.
+
+#### **5\. Conclusión**
+
+El día separa con claridad la matemática de intervalos (`Range`) de la orquestación (`InventoryAuditor`) y del parseo heterogéneo (`AuditBuilder`), bajo las cuatro capas con el dominio en el centro. La abstracción `FreshnessProtocol` permite que la Parte A (conteo con política) y la Parte B (fusión de rangos con protocolo nulo) convivan por polimorfismo sin tocar el código cliente. El resultado tiene bajo acoplamiento y es fácil de probar: los tests construyen `InventoryAuditor` y `Range` directamente, sin tocar ficheros.

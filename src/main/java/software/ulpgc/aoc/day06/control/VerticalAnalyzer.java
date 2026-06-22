@@ -1,9 +1,8 @@
-package software.ulpgc.aoc.day06.a;
+package software.ulpgc.aoc.day06.control;
 
-
-import software.ulpgc.aoc.day06.OperationBuilder;
-import software.ulpgc.aoc.day06.Operation;
-import software.ulpgc.aoc.day06.Operator;
+import software.ulpgc.aoc.day06.model.Operation;
+import software.ulpgc.aoc.day06.model.OperationBuilder;
+import software.ulpgc.aoc.day06.model.Operator;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -11,10 +10,8 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 // part1
-
-
 public class VerticalAnalyzer implements OperationBuilder {
-    private List<String> numericLines;
+    private final List<String> numericLines;
     private String operatorLine;
     private int maxLength = 0;
 

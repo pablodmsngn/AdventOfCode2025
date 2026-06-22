@@ -1,8 +1,8 @@
-package software.ulpgc.aoc.day06.b;
+package software.ulpgc.aoc.day06.control;
 
-import software.ulpgc.aoc.day06.OperationBuilder;
-import software.ulpgc.aoc.day06.Operation;
-import software.ulpgc.aoc.day06.Operator;
+import software.ulpgc.aoc.day06.model.Operation;
+import software.ulpgc.aoc.day06.model.OperationBuilder;
+import software.ulpgc.aoc.day06.model.Operator;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -10,7 +10,6 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 // part2
-
 public class CephalopodAnalyzer implements OperationBuilder {
     private final List<String> numericLines = new ArrayList<>();
     private String operatorLine;

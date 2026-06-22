@@ -1,5 +1,6 @@
-package software.ulpgc.aoc.day06;
+package software.ulpgc.aoc.day06.control;
 
+import software.ulpgc.aoc.day06.model.Operation;
 
 import java.util.stream.Stream;
 

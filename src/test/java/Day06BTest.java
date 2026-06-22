@@ -1,12 +1,9 @@
 import org.junit.jupiter.api.Test;
-import software.ulpgc.aoc.day06.InputLoader;
-import software.ulpgc.aoc.day06.CompactorController;
-import software.ulpgc.aoc.day06.Operation;
-import software.ulpgc.aoc.day06.b.CephalopodAnalyzer;
+import software.ulpgc.aoc.day06.application.InputLoader;
+import software.ulpgc.aoc.day06.control.CompactorController;
+import software.ulpgc.aoc.day06.model.Operation;
+import software.ulpgc.aoc.day06.control.CephalopodAnalyzer;
 
-import java.util.List;
-
-import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
 

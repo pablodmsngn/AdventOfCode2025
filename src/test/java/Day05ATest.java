@@ -1,8 +1,8 @@
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import software.ulpgc.aoc.day05.InventoryAuditor;
-import software.ulpgc.aoc.day05.FreshnessProtocol;
-import software.ulpgc.aoc.day05.Range;
+import software.ulpgc.aoc.day05.control.InventoryAuditor;
+import software.ulpgc.aoc.day05.model.FreshnessProtocol;
+import software.ulpgc.aoc.day05.model.Range;
 
 import java.util.List;
 

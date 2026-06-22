@@ -1,4 +1,7 @@
-package software.ulpgc.aoc.day05;
+package software.ulpgc.aoc.day05.control;
+
+import software.ulpgc.aoc.day05.model.FreshnessProtocol;
+import software.ulpgc.aoc.day05.model.Range;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -14,7 +17,6 @@ public class InventoryAuditor {
         this.availableIds = ids;
         this.protocol = protocol;
     }
-
 
     public long calculateTotalCoverage() {
         if (ranges.isEmpty()) return 0;

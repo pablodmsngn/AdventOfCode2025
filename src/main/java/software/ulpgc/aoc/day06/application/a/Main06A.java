@@ -1,9 +1,9 @@
-package software.ulpgc.aoc.day06.a;
+package software.ulpgc.aoc.day06.application.a;
 
-
-import software.ulpgc.aoc.day06.InputLoader;
-import software.ulpgc.aoc.day06.OperationBuilder;
-import software.ulpgc.aoc.day06.CompactorController;
+import software.ulpgc.aoc.day06.application.InputLoader;
+import software.ulpgc.aoc.day06.control.CompactorController;
+import software.ulpgc.aoc.day06.control.VerticalAnalyzer;
+import software.ulpgc.aoc.day06.model.OperationBuilder;
 
 public class Main06A {
 
