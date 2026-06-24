@@ -2,27 +2,72 @@
 
 #### **1\. Introducción y Problema**
 
-El problema nos sitúa en un laboratorio donde debemos reparar un teletransportador analizando una rejilla llamada "colector de taquiones". Un haz de partículas entra por un punto inicial (S) y viaja hacia abajo. Si encuentra espacio vacío (.), sigue avanzando. Si encuentra un divisor (^), se detiene y genera nuevos haces hacia la izquierda y la derecha en la siguiente capa.  
-El reto se divide en dos interpretaciones físicas que requieren gestionar el estado de la simulación de formas distintas:
+El escenario es un laboratorio de taquiones donde un haz de luz (`S`) desciende por una cuadrícula y, al chocar con un divisor (`^`), se separa en dos haces que continúan hacia abajo. La entrada es una cuadrícula de caracteres y la simulación avanza **capa a capa** (de arriba abajo) propagando la intensidad de cada haz. El reto tiene dos partes que comparten exactamente la misma simulación y solo cambian *qué se mide* sobre el resultado final:
 
-* **Parte A:** Simulamos un haz clásico continuo. Se busca contar cuántas veces ocurre el evento de "división" (un haz golpeando un ^).
-* **Parte B:** Interpretación cuántica (Multiverso). Cada vez que una partícula golpea un divisor, el tiempo se bifurca. Si dos trayectorias convergen, sus líneas temporales (intensidad) se suman aritméticamente. El objetivo es contar la intensidad total acumulada al final del recorrido.
+* **Parte A:** contar el número total de **divisiones** que se producen (cada vez que un haz golpea un divisor).
+* **Parte B:** sumar la **intensidad** de todos los haces activos en la **última capa** (las "líneas temporales" resultantes).
 
-#### **2\. Arquitectura General y principios**
+Como lo único que cambia es cómo se lee el resultado de una misma simulación, esa medida se modela como una abstracción (`LabProtocol`) inyectable: dos lecturas distintas (contar divisiones vs. sumar intensidades) sobre el mismo `TachyonSimulator` ya resuelto.
 
-* **Patrón Builder (ConstructorRejilla):** (Permite crear el objeto paso a paso en lugar de hacerlo todo de golpe en un constructor gigante). He separado la complejidad de parsear el texto de entrada (convertir caracteres ASCII en objetos del dominio) de la lógica de simulación. **ConstructorRejilla** acumula las líneas de texto una a una y finalmente construye la estructura de datos List\<List\<Celda\>\> en un estado válido.
-* **Inmutabilidad y Programación Funcional:**  
-  El núcleo de la solución, **SimuladorTaquiones**, es un Record inmutable. En lugar de modificar el estado de la rejilla actual, el método **simularSiguienteCapa** genera una nueva instancia del simulador con el estado actualizado de la siguiente fila. Esto evita efectos secundarios y simplifica el rastreo de la simulación capa por capa.
-* **Principio de Responsabilidad Única (SRP): (Cada módulo o clase debe tener una sola razón para cambiar).**  
-  He distribuido las responsabilidades para maximizar la cohesión:
-  * **CargadorEntrada (Principio DRY): (No repetir código)**. Centraliza la gestión del I/O y el manejo de excepciones, delegando la construcción al Builder.
-  * **Celda (Alta Cohesión):** (Partes estrechamente relacionadas enfocadas en una tarea). Es un record inteligente que no solo guarda datos, sino que centraliza la lógica de creación mediante Métodos de Factoría (haz(), divisor()) y encapsula su propio comportamiento (esHaz, esDivisor), eliminando la necesidad de comparar caracteres en la lógica principal.
-  * **SimuladorTaquiones:** Contiene exclusivamente las reglas de propagación física (cómo se mueve el haz a la izquierda/derecha). Es agnóstico a si estamos en la Parte A o B, ya que simplemente propaga intensidades.
-  * **ControladorLaboratorio (Abstraccion):** Actúa como punto de entrada simplificado. Oculta la complejidad del simulador al cliente (Main), exponiendo solo los métodos de negocio (contarDivisiones, contarLineasTemporales).
-* **Abstracción (DIP implícito):**  
-  A través del método Celda.desdeCaracter, el sistema se desacopla de la representación visual. El resto de la aplicación trabaja con conceptos abstractos (TipoCelda) en lugar de caracteres primitivos, facilitando cambios futuros en el formato de entrada.
-* **Algoritmo de Simulación por Capas (BFS \- Breadth First Search):** En lugar de usar recursividad (DFS) que podría desbordar la pila en rejillas grandes, proceso la simulación capa por capa de arriba a abajo. Esto es eficiente porque el estado de la capa N depende exclusivamente de la capa N-1. Para la Parte B: Uso aritmética de long para sumar intensidades. Si un haz con intensidad 5 y otro con 3 convergen, la celda resultante tendrá intensidad 8\. Esto resuelve el problema combinatorio sin necesitar memoria exponencial.
+#### **2\. Arquitectura por capas**
 
-#### **3\. Conclusión**
+He reorganizado el día en las mismas **cuatro capas** que los días anteriores, con las dependencias apuntando siempre hacia el dominio:
 
-La solución destaca por transformar un problema de recorrido complejo en una simulación lineal capa por capa (BFS) mediante el uso de Estado Inmutable. La separación entre la estructura de datos (Celda) y el motor de lógica (Simulador) permite resolver tanto el caso clásico como el cuántico reutilizando el mismo motor de propagación, garantizando un código robusto y mantenible.
+```
+software.ulpgc.aoc.day07
+├── model         (dominio puro, no depende de nadie)
+│   ├── CellType
+│   ├── Cell
+│   ├── TachyonSimulator
+│   └── LabProtocol
+├── io            (frontera de entrada)
+│   └── GridLoader
+├── control       (orquesta el caso de uso)
+│   ├── LabController
+│   └── GridBuilder
+└── application   (detalles y arranque)
+    ├── ResourceGridLoader
+    ├── InputLoader
+    └── a/Main07A, b/Main07B
+```
+
+**Dirección de dependencias:** `application → control → (io + model)` y `io → model`. El dominio (`model`) no importa nada del proyecto.
+
+#### **3\. Explicación clase a clase**
+
+**Capa `model` (dominio puro)**
+
+* **`CellType`** *(enum)*: los tres estados posibles de una celda (`EMPTY`, `DIVISOR`, `BEAM`). Centraliza el vocabulario del dominio.
+* **`Cell`** *(record)*: un *Value Object* inmutable que combina el tipo y la intensidad del haz. Encapsula su parseo desde carácter (`fromChar`) y sus factorías (`empty`, `divisor`, `beam`), de modo que el resto del programa habla en alto nivel (`isBeam`, `isDivisor`) y no de símbolos (`^`, `S`) → **alta cohesión**.
+* **`TachyonSimulator`** *(record)*: el motor de simulación, **puro e inmutable**. Avanza capa por capa (`solve`) y en cada paso devuelve un **nuevo** simulador con la capa actualizada y el contador de divisiones acumulado, sin mutar estado. Vive en el dominio porque depende solo de `Cell`.
+* **`LabProtocol`** *(interfaz funcional)*: la **abstracción** de la medida final (`long measure(TachyonSimulator solved)`). Es la pieza que permite el DIP y elegir por polimorfismo qué se extrae del resultado (divisiones en A, intensidades en B).
+
+**Capa `io` (frontera de entrada)**
+
+* **`GridLoader`** *(interfaz)*: define *qué* se necesita de la entrada (`List<String> loadLines()`) sin atarse a *cómo* se lee. El arranque depende de esta abstracción, no del detalle de lectura.
+
+**Capa `control` (orquesta el caso de uso)**
+
+* **`LabController`** *(record)*: el caso de uso. Recibe la cuadrícula ya parseada y el `LabProtocol` inyectado, y en `run()` lanza la simulación (`new TachyonSimulator(grid, 0, 1).solve()`) y delega la medida en el protocolo. No sabe de dónde vienen los datos ni qué se mide exactamente.
+* **`GridBuilder`** *(Patrón Builder, interfaz fluida)*: construye el `LabController` paso a paso (`from(lines).using(protocol).build()`). Se encarga de **parsear** las líneas crudas en una `List<List<Cell>>` y garantiza que nunca se cree un controlador incompleto (si falta la entrada o el protocolo, lanza excepción).
+
+**Capa `application` (detalles y arranque)**
+
+* **`ResourceGridLoader`** *(implements `GridLoader`)*: el detalle de bajo nivel; lee un recurso del classpath y devuelve la lista de líneas. Es intercambiable por otra fuente de datos.
+* **`InputLoader`** *(fachada de ensamblaje)*: punto estático que conecta el cargador con el protocolo inyectado (`load(file, protocol)`): lee las líneas y las pasa al `GridBuilder`, devolviendo un `LabController` listo.
+* **`Main07A` / `Main07B`** *(composition root)*: el único punto donde se elige la medida. La Parte A inyecta `solved -> solved.accumulatedDivisions()` y la Parte B una lambda que suma la intensidad de los haces de la última capa; el resto del flujo es idéntico.
+
+#### **4\. Principios y diseños aplicados**
+
+* **Inversión de Dependencias (DIP):** `LabController` depende de la abstracción `LabProtocol`, no de una medida concreta; el arranque depende de la interfaz `GridLoader`, no de cómo se leen los datos.
+* **Abierto/Cerrado (OCP):** medir otra cosa sobre la simulación (ej. la capa intermedia con más haces) es inyectar otra lambda; el núcleo queda cerrado a modificación.
+* **Responsabilidad Única (SRP):** `Cell` guarda el estado de una celda, `TachyonSimulator` solo simula, `LabController` solo orquesta, `GridBuilder` solo parsea y ensambla, `ResourceGridLoader` solo lee I/O.
+* **Inmutabilidad y robustez:** la simulación es funcional (`solve` devuelve nuevos simuladores) y `Cell` es un record inmutable, lo que elimina efectos colaterales en la propagación del haz.
+* **Patrón Builder + interfaz fluida:** `GridBuilder` arma el controlador paso a paso y valida que esté completo antes de crearlo.
+* **Segregación de Interfaces (ISP):** `GridLoader` expone un único método cohesivo (`loadLines`).
+* **Inyección de Dependencias (DI) / Strategy:** el cargador y la medida se pasan desde fuera; el comportamiento se elige sin tocar el núcleo.
+* **Alta Cohesión y DRY:** la simulación está escrita una sola vez y ambas partes la reutilizan; solo cambia la lectura final.
+
+#### **5\. Conclusión**
+
+El día separa con claridad la simulación pura (`TachyonSimulator`) de su lectura (`LabProtocol`) y del parseo (`GridBuilder`), bajo las cuatro capas con el dominio en el centro. La inmutabilidad hace la propagación del haz predecible y fácil de razonar, y la abstracción de la medida permite que la Parte A (contar divisiones) y la Parte B (sumar intensidades) convivan por polimorfismo sin duplicar la simulación. El resultado tiene bajo acoplamiento y es fácil de probar: los tests construyen el `LabController` con el `GridBuilder` e inyectan la lambda de medida, sin tocar ficheros. Se verificó que el comportamiento se conserva: Parte A = 21 y Parte B = 40 sobre el ejemplo del enunciado.

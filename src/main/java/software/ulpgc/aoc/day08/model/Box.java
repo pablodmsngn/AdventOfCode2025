@@ -1,4 +1,4 @@
-package software.ulpgc.aoc.day08;
+package software.ulpgc.aoc.day08.model;
 
 public record Box(int x, int y, int z) {
     public double distanceTo(Box another) {

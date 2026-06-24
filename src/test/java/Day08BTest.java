@@ -2,11 +2,9 @@
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import software.ulpgc.aoc.day08.InputLoader;
-import software.ulpgc.aoc.day08.LightsController;
-
-import java.io.ByteArrayInputStream;
-import java.nio.charset.StandardCharsets;
+import software.ulpgc.aoc.day08.control.SolverFactory;
+import software.ulpgc.aoc.day08.model.Circuit;
+import software.ulpgc.aoc.day08.model.CircuitSolver;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -38,9 +36,11 @@ public class Day08BTest {
     @Test
     @DisplayName("Verify example: 216 * 117 = 25272")
     public void test_merge_example() {
-        var inputStream = new ByteArrayInputStream(EXAMPLE_INPUT.getBytes(StandardCharsets.UTF_8));
-        LightsController controller = InputLoader.load(inputStream);
-        long result = controller.executeMerge();
+        CircuitSolver solver = new SolverFactory()
+                .from(EXAMPLE_INPUT.lines().map(Circuit::fromText).toList())
+                .type(SolverFactory.SolverType.B)
+                .build();
+        long result = solver.solve();
         assertEquals(25272L, result);
     }
 }

@@ -1,4 +1,8 @@
-package software.ulpgc.aoc.day08;
+package software.ulpgc.aoc.day08.control;
+
+import software.ulpgc.aoc.day08.model.Box;
+import software.ulpgc.aoc.day08.model.BoxPair;
+import software.ulpgc.aoc.day08.model.Circuit;
 
 import java.util.ArrayList;
 import java.util.Comparator;

@@ -1,6 +1,7 @@
 import org.junit.jupiter.api.Test;
-import software.ulpgc.aoc.day07.GridBuilder;
-import software.ulpgc.aoc.day07.LabController;
+import software.ulpgc.aoc.day07.control.GridBuilder;
+import software.ulpgc.aoc.day07.control.LabController;
+import software.ulpgc.aoc.day07.model.LabProtocol;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -28,10 +29,12 @@ public class Day07ATest {
 
     @Test
     public void testDivisionsExample() {
-        GridBuilder builder = new GridBuilder();
-        EXAMPLE_INPUT.lines().forEach(builder::addLine);
-        LabController controller = new LabController(builder.build());
-        int result = controller.countDivisions();
-        assertEquals(21, result, "The number of divisions should be 21");
+        LabProtocol countDivisions = solved -> solved.accumulatedDivisions();
+        LabController controller = new GridBuilder()
+                .from(EXAMPLE_INPUT.lines().toList())
+                .using(countDivisions)
+                .build();
+        long result = controller.run();
+        assertEquals(21L, result, "The number of divisions should be 21");
     }
 }

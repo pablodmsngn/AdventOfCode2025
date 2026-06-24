@@ -1,5 +1,4 @@
-package software.ulpgc.aoc.day07;
-
+package software.ulpgc.aoc.day07.model;
 
 
 public record Cell(CellType type, long intensity) {
