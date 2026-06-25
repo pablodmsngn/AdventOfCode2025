@@ -1,10 +1,9 @@
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import software.ulpgc.aoc.day10.InputLoader;
-import software.ulpgc.aoc.day10.FactoryController;
+import software.ulpgc.aoc.day10.control.FactoryController;
+import software.ulpgc.aoc.day10.model.Machine;
 
-import java.io.ByteArrayInputStream;
-import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -20,9 +19,10 @@ public class Day10BTest {
     @Test
     @DisplayName("Verify example: Total presses (Voltages) is 33")
     public void testExamplePart2() {
-        var inputStream = new ByteArrayInputStream(EXAMPLE_INPUT.getBytes(StandardCharsets.UTF_8));
-        FactoryController controller = InputLoader.load(inputStream);
-        long result = controller.executePart2();
+        FactoryController controller = new FactoryController(
+                EXAMPLE_INPUT.lines().map(Machine::from).toList(),
+                machine -> machine.solveVoltageRequirements(new HashMap<>()));
+        long result = controller.execute();
         assertEquals(33L, result, "The total presses for the voltages should be 33");
     }
 }

@@ -1,7 +1,4 @@
-package software.ulpgc.aoc.day09;
-
-import java.util.stream.LongStream;
-import java.util.stream.Stream;
+package software.ulpgc.aoc.day09.model;
 
 public record Rectangle(Coordinate c1, Coordinate c2) {
 

@@ -1,4 +1,7 @@
-package software.ulpgc.aoc.day09;
+package software.ulpgc.aoc.day09.control;
+
+import software.ulpgc.aoc.day09.model.Coordinate;
+import software.ulpgc.aoc.day09.model.Rectangle;
 
 import java.util.ArrayList;
 import java.util.Comparator;

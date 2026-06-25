@@ -1,4 +1,4 @@
-package software.ulpgc.aoc.day09;
+package software.ulpgc.aoc.day09.model;
 
 
 import java.util.Arrays;

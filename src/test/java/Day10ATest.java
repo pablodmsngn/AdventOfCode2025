@@ -1,11 +1,7 @@
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import software.ulpgc.aoc.day10.InputLoader;
-import software.ulpgc.aoc.day10.FactoryController;
-
-
-import java.io.ByteArrayInputStream;
-import java.nio.charset.StandardCharsets;
+import software.ulpgc.aoc.day10.control.FactoryController;
+import software.ulpgc.aoc.day10.model.Machine;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -21,9 +17,10 @@ public class Day10ATest {
     @Test
     @DisplayName("Verify example: Total minimum presses (Lights) is 7")
     public void testExamplePart1() {
-        var inputStream = new ByteArrayInputStream(EXAMPLE_INPUT.getBytes(StandardCharsets.UTF_8));
-        FactoryController controller = InputLoader.load(inputStream);
-        long result = controller.executePart1();
+        FactoryController controller = new FactoryController(
+                EXAMPLE_INPUT.lines().map(Machine::from).toList(),
+                Machine::solveMinPresses);
+        long result = controller.execute();
         assertEquals(7L, result, "The total presses to configure the lights should be 7");
     }
 }

@@ -1,33 +1,73 @@
-
 ### **Día 10 \- Fábrica**
 
 #### **1\. Introducción y Problema**
 
-El escenario nos sitúa en una fábrica donde debemos reparar máquinas complejas. Cada máquina tiene un conjunto de botones y un panel de indicadores con luces y voltajes asociados. Al pulsar un botón, se alteran estados específicos (luces encendidas/apagadas) y se incrementan los voltajes en ciertos componentes.  
-El reto se divide en dos partes de optimización combinatoria:
+El escenario nos sitúa en una fábrica donde hay que reparar máquinas. Cada máquina tiene un conjunto de botones y un panel de indicadores con luces y voltajes. Al pulsar un botón se alternan estados concretos (luces encendidas/apagadas) y se incrementan los voltajes de ciertos componentes. El reto tiene dos partes que comparten el modelo (máquinas, botones, indicadores) y se diferencian en *qué se le pide resolver* a cada máquina:
 
-* **Parte A:** Encontrar la secuencia mínima de pulsaciones de botones para que las luces coincidan exactamente con una configuración objetivo, ignorando los voltajes (resuelto mediante BFS).
-* **Parte B:** El problema se complica; debemos cumplir requisitos estrictos de voltaje acumulado. Esto requiere una búsqueda recursiva más profunda, resolviendo primero la paridad (luces) y luego ajustando los voltajes restantes matemáticamente.
+* **Parte A:** encontrar la **mínima** secuencia de pulsaciones para que las luces coincidan con una configuración objetivo, ignorando los voltajes (resuelto con BFS sobre subconjuntos de botones).
+* **Parte B:** cumplir requisitos estrictos de **voltaje acumulado**. Requiere una búsqueda **recursiva** (con memoización) que resuelve primero la paridad de las luces y luego ajusta matemáticamente los voltajes restantes.
 
-#### **2\. Arquitectura General y principios**
+Como ambas partes recorren la misma lista de máquinas y solo cambian la función que resuelve cada una, esa función se modela como una abstracción (`MachineSolver`) inyectable: una estrategia distinta para A y para B sobre el mismo controlador.
 
-* **Patrón Factory Method: (En lugar de usar directamente el constructor... se llama a un método estático que encapsula la creación del objeto).**  
-  He aplicado este patrón en todas las clases de dominio (Boton, Maquina, Indicador, Estado) utilizando métodos estáticos desde() o deCaracter().
-  * Por ejemplo, Boton.desde(String str) encapsula la lógica de "parsear" una cadena de texto compleja y **convertirla en un objeto válido. Esto limpia el código cliente y centraliza la lógica de creación.**
-* **Principio de Responsabilidad Única (SRP): (Cada módulo o clase debe tener una sola razón para cambiar, reflejando la alta cohesión).**  
-  He distribuido las responsabilidades para cumplir este principio:
-  * **CargadorEntrada (Principio DRY):** (Cada pieza de conocimiento... debería tener una representación única). Su única responsabilidad es la infraestructura de I/O (lectura de ficheros), evitando mezclar lógica de negocio con acceso a disco.
-  * **Maquina (Lógica de Negocio):** Centraliza los algoritmos de resolución (BFS para la Parte A y Recursividad para la Parte B). No sabe leer ficheros ni imprimir resultados, solo calcular costes.
-  * **ControladorFabrica (Abstracción): (Consiste en ocultar los detalles complejos detrás de una interfaz simple).** Oculta la complejidad de la iteración y la agregación de resultados **(uso de Streams y sumatorios)** detrás de métodos directos como **ejecutarParte1**() y **ejecutarParte2**(). El Main no sabe cómo se resuelven los algoritmos de cada máquina (BFS o recursividad), solo pide el resultado total acumulad
-* **Fundamento de Alta Cohesión: (Refiere a la idea de que las partes de un módulo o componente deben estar estrechamente relacionadas y enfocadas en una única tarea).**
-  * **Indicador**: Es un ejemplo claro. Agrupa datos estrechamente ligados (estados de luces y voltajes). Sus métodos (reducirVoltajesCon, mitadVoltajes) operan exclusivamente sobre estos datos para generar nuevos estados, sin dependencias externas.
-  * **Boton**: Solo contiene el conjunto de índices que afecta. Es un componente atómico enfocado en una sola tarea.
-* **Inmutabilidad y Value Objects:**  
-  He utilizado records de Java (Boton, Indicador, Maquina) para garantizar la inmutabilidad.  
-  En algoritmos de búsqueda (como el BFS en Maquina.java), **es crucial que el estado (Indicador) no cambie inesperadamente**. Métodos como **aplicarBoton** devuelven una nueva instancia de Indicador en lugar de modificar el existente, previniendo efectos secundarios (Side Effects) y facilitando la recursividad segura.
-* **Abstracción: (Consiste en ocultar los detalles complejos detrás de una interfaz simple).**  
-  A través del Enum **Estado** y su método deCaracter, ocultamos la representación de bajo nivel (\# o .) detrás de conceptos semánticos (ENCENDIDO, APAGADO). El resto del sistema trabaja con estados lógicos, no con caracteres.
+#### **2\. Arquitectura por capas**
 
-#### **3\. Conclusión**
+He reorganizado el día en las mismas **cuatro capas** que los días anteriores, con las dependencias apuntando siempre hacia el dominio:
 
-El uso extensivo de Factory Methods facilita la creación de objetos desde texto plano, mientras que la separación de responsabilidades permite que el algoritmo de resolución (Maquina) sea independiente de la entrada de datos (Cargador), resultando en un sistema robusto, mantenible y libre de efectos secundarios gracias a la inmutabilidad.
+```
+software.ulpgc.aoc.day10
+├── model         (dominio puro, no depende de nadie)
+│   ├── State
+│   ├── Button
+│   ├── Indicator
+│   ├── Machine
+│   └── MachineSolver
+├── io            (frontera de entrada)
+│   └── MachineLoader
+├── control       (orquesta el caso de uso)
+│   └── FactoryController
+└── application   (detalles y arranque)
+    ├── ResourceMachineLoader
+    ├── InputLoader
+    └── a/Main10A, b/Main10B
+```
+
+**Dirección de dependencias:** `application → control → (io + model)` y `io → model`. El dominio (`model`) no importa nada del proyecto.
+
+#### **3\. Explicación clase a clase**
+
+**Capa `model` (dominio puro)**
+
+* **`State`** *(enum)*: las luces (`ON`, `OFF`). Oculta la representación de bajo nivel (`#` / `.`) tras conceptos semánticos mediante `fromChar` y `parse`. El resto del sistema habla de estados lógicos, no de caracteres.
+* **`Button`** *(record)*: un *Value Object* atómico; solo guarda el conjunto de índices que afecta y su parseo (`from`).
+* **`Indicator`** *(record)*: agrupa datos estrechamente ligados (estados de luces y voltajes) y opera sobre ellos de forma **inmutable**: `reduceVoltagesWith`, `voltageHalf`, `toggleState` y `createInitialState` devuelven **nuevas** instancias en vez de mutar → **alta cohesión**.
+* **`Machine`** *(record)*: el motor de resolución, **puro e inmutable**. Centraliza los algoritmos: BFS sobre máscaras de botones (`solveMinPresses`, Parte A) y la búsqueda recursiva con caché (`solveVoltageRequirements`, Parte B). No lee ficheros ni imprime: solo calcula costes. Vive en el dominio porque depende solo de `State`, `Button` e `Indicator`.
+* **`MachineSolver`** *(interfaz funcional)*: la **abstracción** de "cómo resolver una máquina" (`int solve(Machine machine)`). Es la pieza que permite el DIP y elegir por polimorfismo la estrategia A o B.
+
+**Capa `io` (frontera de entrada)**
+
+* **`MachineLoader`** *(interfaz)*: define *qué* se necesita de la entrada (`List<String> loadLines()`) sin atarse a *cómo* se lee. El arranque depende de esta abstracción, no del detalle de lectura.
+
+**Capa `control` (orquesta el caso de uso)**
+
+* **`FactoryController`**: el caso de uso. Recibe la lista de máquinas y el `MachineSolver` inyectado, y en `execute()` suma el coste que el solucionador calcula para cada máquina. Ignora si por dentro es BFS (A) o recursividad (B).
+
+**Capa `application` (detalles y arranque)**
+
+* **`ResourceMachineLoader`** *(implements `MachineLoader`)*: el detalle de bajo nivel; lee un recurso del classpath y devuelve la lista de líneas. Es intercambiable por otra fuente de datos.
+* **`InputLoader`** *(fachada de ensamblaje)*: lee las líneas, las parsea a máquinas (`Machine::from`) y conecta todo con el `MachineSolver` inyectado, devolviendo un `FactoryController` listo.
+* **`Main10A` / `Main10B`** *(composition root)*: el único punto donde se elige la estrategia. La Parte A inyecta `Machine::solveMinPresses` y la Parte B `machine -> machine.solveVoltageRequirements(new HashMap<>())`; el resto del flujo es idéntico.
+
+#### **4\. Principios y diseños aplicados**
+
+* **Inversión de Dependencias (DIP):** `FactoryController` depende de la abstracción `MachineSolver`, no de un algoritmo concreto; el arranque depende de la interfaz `MachineLoader`, no de cómo se leen los datos.
+* **Abierto/Cerrado (OCP):** pedir otra forma de resolver una máquina es inyectar otra estrategia; `FactoryController` queda cerrado a modificación.
+* **Responsabilidad Única (SRP):** `Button` guarda los índices, `Indicator` los datos del panel, `Machine` solo los algoritmos, `FactoryController` solo agrega, `ResourceMachineLoader` solo lee I/O, `InputLoader` solo ensambla.
+* **Inmutabilidad y robustez:** los records (`Button`, `Indicator`, `Machine`) garantizan que el estado no cambie inesperadamente; métodos como `applyButton` devuelven un nuevo `Indicator`, lo que evita efectos colaterales y hace segura la recursividad y el BFS.
+* **Segregación de Interfaces (ISP):** `MachineLoader` expone un único método cohesivo (`loadLines`).
+* **Patrón Factory Method:** `Machine.from`, `Button.from`, `Indicator.from` y `State.fromChar` convierten texto crudo en objetos del dominio ya válidos.
+* **Inyección de Dependencias (DI) / Strategy:** las máquinas y la estrategia de resolución se pasan desde fuera; el comportamiento se elige sin tocar el núcleo.
+* **Abstracción / Tell-Don't-Ask:** el sistema trabaja con `State.ON/OFF` y delega los cálculos en los propios objetos del dominio en vez de manipular caracteres o listas crudas.
+
+#### **5\. Conclusión**
+
+El día concentra los algoritmos pesados (BFS y recursividad con memoización) en un dominio puro e inmutable (`Machine`), y aísla la variación entre la Parte A y la Parte B tras la abstracción `MachineSolver`, inyectada como lambda desde los `Main`. Bajo las cuatro capas, el controlador (`FactoryController`) solo agrega costes sin conocer el algoritmo, y los detalles (I/O, arranque) quedan en los bordes. La inmutabilidad de `Indicator` hace seguras las búsquedas (cada pulsación genera un nuevo estado, sin efectos colaterales). El resultado tiene bajo acoplamiento y es fácil de probar: los tests construyen el `FactoryController` con `Machine::from` e inyectan la estrategia, sin tocar ficheros. Se verificó que el comportamiento se conserva: Parte A = 7 y Parte B = 33 sobre el ejemplo del enunciado.

@@ -1,9 +1,7 @@
-package software.ulpgc.aoc.day10;
+package software.ulpgc.aoc.day10.model;
 
 import java.util.*;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import java.util.stream.Stream;
 
 public record Machine(Indicator target, List<Button> buttons) {
 

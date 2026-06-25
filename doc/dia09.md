@@ -1,30 +1,75 @@
-
 ### **Día 9 \- Cine**
 
 #### **1\. Introducción y Problema**
 
-El problema nos sitúa en el cine de la base del Polo Norte, que tiene un suelo de baldosas rojas y de otros colores. Se nos proporciona una lista de coordenadas de las baldosas rojas. El objetivo es encontrar el rectángulo más grande posible utilizando dos baldosas rojas como esquinas opuestas.  
-El reto se divide en dos partes que varían en las restricciones geométricas:
+El problema nos sitúa en el cine de la base del Polo Norte, con un suelo de baldosas rojas y de otros colores. La entrada es una lista de coordenadas de las baldosas rojas. El objetivo es encontrar el **rectángulo más grande** posible usando dos baldosas rojas como esquinas opuestas. El reto tiene dos partes que comparten toda la mecánica (generar rectángulos, ordenarlos por área) y solo cambian la **restricción geométrica**:
 
-* **Parte A:** Calcular el área máxima posible formando un rectángulo con cualquier par de baldosas rojas de la lista, sin importar qué hay en medio.
-* **Parte B:** Las baldosas rojas forman el contorno de un polígono (conectadas por baldosas verdes). El rectángulo seleccionado debe ser válido, es decir, debe estar contenido completamente dentro de este polígono (solo puede pisar baldosas rojas o verdes). Esto requiere verificar intersecciones y contención geométrica.
+* **Parte A:** calcular el área máxima formando un rectángulo con **cualquier par** de baldosas rojas, sin importar qué hay en medio.
+* **Parte B:** las baldosas rojas forman el contorno de un **polígono**. El rectángulo debe ser **válido**: estar contenido completamente dentro del polígono (no cruzar ninguna arista y tener su centro dentro). Requiere comprobaciones de intersección y de contención (*ray casting*).
 
-#### **2\. Arquitectura General y principios**
+Como lo único que cambia es el criterio que decide qué rectángulo vale, ambas partes se modelan como una abstracción (`AreaSolver`) con dos implementaciones intercambiables, seleccionadas por una fábrica.
 
-* **Principio de Responsabilidad Única (SRP): (Cada módulo o clase debe tener una sola razón para cambiar, reflejando la alta cohesión).**  
-  He distribuido las responsabilidades para maximizar la organización del código:
-  * **CargadorEntrada (Principio DRY): (No repetir código).** Centraliza la gestión del I/O (lectura de recursos) y el manejo de excepciones, evitando duplicar la lógica de carga en los Main de cada parte.
-  * **BuscadorRectangulos (Lógica Algorítmica):** Su única responsabilidad es la búsqueda combinatoria. Genera todos los rectángulos posibles y aplica los filtros de validez (geometría de polígonos) para encontrar el óptimo.
-  * **ControladorCine (Adstraccion, Consiste en ocultar los detalles complejos detrás de una interfaz simple)**oculta la complejidad del algoritmo combinatorio (BuscadorRectangulos) detrás de un método simple obtenerAreaMaxima(). El Main no sabe cómo se buscan los rectángulos, solo pide el resultado.
-* **Fundamento de Alta Cohesión: (Las partes de un módulo deben estar estrechamente relacionadas y enfocadas en una única tarea).**
-  * **Rectangulo:** Es un Record que actúa como Value Object. No solo almacena dos coordenadas, sino que encapsula toda la lógica matemática relacionada con su forma: cálculo de área, ancho, alto y obtención de límites (minX, maxY). Esto evita dispersar cálculos geométricos básicos por el resto de la aplicación.
-* **Patrón Factory Method: (En lugar de usar directamente el constructor... se llama a un método estático que encapsula la creación del objeto).**
-  * Implementado en CargadorEntrada.cargar: Encapsula la complejidad de abrir el InputStream y leer las líneas del fichero.
-  * Implementado en Coordenada.desde(String): Encapsula el parseo de la cadena de texto (ej. "7,1") para convertirla en un objeto Coordenada válido, centralizando la lógica de transformación de datos.
-* **Inmutabilidad (Records):**  
-  He utilizado records para las estructuras de datos fundamentales (Coordenada, Rectangulo).
-  * Al ser inmutables, facilitan el procesamiento paralelo y el uso de Streams en la clase BuscadorRectangulos, asegurando que las coordenadas no sean modificadas accidentalmente durante la generación masiva de combinaciones.
+#### **2\. Arquitectura por capas**
 
-#### **3\. Conclusión**
+He reorganizado el día en las mismas **cuatro capas** que los días anteriores, con las dependencias apuntando siempre hacia el dominio:
 
-Se utiliza una arquitectura centrada en el dominio geométrico. El uso de Value Objects ricos (Rectangulo) y la separación de la lógica de validación espacial (BuscadorRectangulos) permiten resolver un problema de optimización combinatoria manteniendo un código limpio y legible. La aplicación de Factory Methods simplifica la creación de objetos desde la entrada de datos.
+```
+software.ulpgc.aoc.day09
+├── model         (dominio puro, no depende de nadie)
+│   ├── Coordinate
+│   ├── Rectangle
+│   └── AreaSolver
+├── io            (frontera de entrada)
+│   └── TileLoader
+├── control       (orquesta el caso de uso)
+│   ├── RectangleFinder
+│   ├── MaxAreaSolver
+│   ├── AllowedAreaSolver
+│   └── AreaSolverFactory
+└── application   (detalles y arranque)
+    ├── ResourceTileLoader
+    ├── InputLoader
+    └── a/Main09A, b/Main09B
+```
+
+**Dirección de dependencias:** `application → control → (io + model)` y `io → model`. El dominio (`model`) no importa nada del proyecto.
+
+#### **3\. Explicación clase a clase**
+
+**Capa `model` (dominio puro)**
+
+* **`Coordinate`** *(record)*: un *Value Object* inmutable con las coordenadas (x, y). Encapsula su parseo desde texto (`from("7,1")`), centralizando la transformación de datos.
+* **`Rectangle`** *(record)*: un *Value Object* rico que no solo guarda dos esquinas, sino que **encapsula toda la geometría**: ancho, alto, área, si es vertical y sus límites (`minX`, `maxX`, `minY`, `maxY`). Así los cálculos geométricos no se dispersan por el resto del programa → **alta cohesión**.
+* **`AreaSolver`** *(interfaz funcional)*: la **abstracción** del caso de uso (`long solve()`). Vive en el dominio porque no depende de ninguna otra capa; es la pieza que permite el DIP y el polimorfismo entre la Parte A y la B.
+
+**Capa `io` (frontera de entrada)**
+
+* **`TileLoader`** *(interfaz)*: define *qué* se necesita de la entrada (`List<String> loadLines()`) sin atarse a *cómo* se lee. El arranque depende de esta abstracción, no del detalle de lectura.
+
+**Capa `control` (orquesta el caso de uso)**
+
+* **`RectangleFinder`** *(motor algorítmico)*: contiene la búsqueda combinatoria. Genera todos los rectángulos posibles ordenados por área (`generateRectangles`), encuentra el mayor (`findLargest`, Parte A) y el mayor válido dentro del polígono (`findLargestAllowed`, Parte B), con sus auxiliares de geometría (aristas del polígono, intersección y contención por *ray casting*).
+* **`MaxAreaSolver`** *(implements `AreaSolver`)*: la estrategia de la Parte A; delega en el buscador y devuelve el área del rectángulo mayor.
+* **`AllowedAreaSolver`** *(implements `AreaSolver`)*: la estrategia de la Parte B; devuelve el área del mayor rectángulo permitido.
+* **`AreaSolverFactory`** *(Builder + Factory)*: configura paso a paso (`from(tiles).type(A|B).build()`) y crea la implementación concreta correcta de forma transparente, validando que no falte nada.
+
+**Capa `application` (detalles y arranque)**
+
+* **`ResourceTileLoader`** *(implements `TileLoader`)*: el detalle de bajo nivel; lee un recurso del classpath y devuelve la lista de líneas. Es intercambiable por otra fuente de datos.
+* **`InputLoader`** *(fachada de ensamblaje)*: lee las líneas, las parsea a coordenadas (`Coordinate::from`) y configura el `AreaSolver` correcto vía la fábrica (`loadMaxArea`, `loadAllowedArea`).
+* **`Main09A` / `Main09B`** *(composition root)*: el único punto donde se elige la estrategia. El resto del flujo es idéntico: `solver.solve()`.
+
+#### **4\. Principios y diseños aplicados**
+
+* **Inversión de Dependencias (DIP):** los `Main` y la fábrica dependen de la abstracción `AreaSolver`, no de las clases concretas; el arranque depende de la interfaz `TileLoader`, no de cómo se leen los datos.
+* **Abierto/Cerrado (OCP):** añadir otra restricción (ej. rectángulos de un tamaño máximo) es crear otro `AreaSolver` e inyectarlo por la fábrica; el motor `RectangleFinder` queda inalterado.
+* **Patrón Builder + Factory:** `AreaSolverFactory` configura paso a paso y oculta qué implementación concreta se instancia.
+* **Responsabilidad Única (SRP):** `Rectangle` guarda la geometría, `RectangleFinder` solo la búsqueda, cada *Solver* solo su variante, `ResourceTileLoader` solo lee I/O, `AreaSolverFactory` solo ensambla.
+* **Segregación de Interfaces (ISP):** `TileLoader` expone un único método cohesivo (`loadLines`).
+* **Patrón Factory Method:** `Coordinate.from(...)` convierte texto crudo en un objeto del dominio ya válido.
+* **Inmutabilidad:** `Coordinate` y `Rectangle` son records inmutables, lo que da seguridad durante la generación masiva de combinaciones en streams.
+* **Inyección de Dependencias (DI) / Strategy:** las baldosas y el tipo se pasan desde fuera; el comportamiento se elige sin tocar el núcleo.
+
+#### **5\. Conclusión**
+
+El día centra la arquitectura en el dominio geométrico: *Value Objects* ricos (`Rectangle`) concentran los cálculos, el motor combinatorio (`RectangleFinder`) queda aislado en `control` tras la abstracción `AreaSolver`, y una fábrica selecciona la variante. Bajo las cuatro capas, la Parte A (área máxima libre) y la Parte B (área máxima dentro del polígono) conviven por polimorfismo sin tocar el código cliente. El resultado tiene bajo acoplamiento y es fácil de probar: los tests parsean el ejemplo con `Coordinate::from` y construyen el solucionador con la fábrica, sin tocar ficheros. Se verificó que el comportamiento se conserva: Parte A = 50 y Parte B = 24 sobre el ejemplo del enunciado.

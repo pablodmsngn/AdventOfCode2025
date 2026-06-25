@@ -1,11 +1,9 @@
 
 
 import org.junit.jupiter.api.Test;
-import software.ulpgc.aoc.day09.InputLoader;
-import software.ulpgc.aoc.day09.CinemaController;
-
-import java.io.ByteArrayInputStream;
-import java.nio.charset.StandardCharsets;
+import software.ulpgc.aoc.day09.control.AreaSolverFactory;
+import software.ulpgc.aoc.day09.model.AreaSolver;
+import software.ulpgc.aoc.day09.model.Coordinate;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -24,9 +22,11 @@ public class Day09ATest {
 
     @Test
     public void test_example_part1() {
-        var inputStream = new ByteArrayInputStream(EXAMPLE_INPUT.getBytes(StandardCharsets.UTF_8));
-        CinemaController controller = InputLoader.load(inputStream);
-        long result = controller.getMaxArea();
+        AreaSolver solver = new AreaSolverFactory()
+                .from(EXAMPLE_INPUT.lines().map(Coordinate::from).toList())
+                .type(AreaSolverFactory.SolverType.A)
+                .build();
+        long result = solver.solve();
         assertEquals(50L, result);
     }
 }
