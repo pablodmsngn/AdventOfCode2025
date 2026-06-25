@@ -1,6 +1,6 @@
 package software.ulpgc.aoc.day07.model;
 
-
+//factory method: metodo estático que devuelve y crea el objeto
 public record Cell(CellType type, long intensity) {
 
     public static Cell empty() {

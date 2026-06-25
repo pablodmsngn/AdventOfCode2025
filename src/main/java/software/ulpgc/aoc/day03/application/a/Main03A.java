@@ -8,7 +8,7 @@ import software.ulpgc.aoc.day03.io.SequenceLoader;
 import software.ulpgc.aoc.day03.model.EnergyProtocol;
 
 public class Main03A {
-
+    private final Integer number = 2;
     public static void main(String[] args) {
 
         SequenceLoader loader = new ResourceSequenceLoader("day03input");

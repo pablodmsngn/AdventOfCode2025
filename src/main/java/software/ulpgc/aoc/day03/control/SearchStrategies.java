@@ -31,7 +31,7 @@ public class SearchStrategies {
                 }
             }
 
-            if (bestDigitPosition != -1) {
+            if (bestDigitPosition != -1) { //centinela, se llego a encontrar algo?, valor especial
                 result.append(bestDigit);
                 lastPosition = bestDigitPosition;
             }

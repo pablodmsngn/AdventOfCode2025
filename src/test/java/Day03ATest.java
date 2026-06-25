@@ -50,11 +50,11 @@ public class Day03ATest {
     public void testIntegrationPhase1() {
         List<BatteryBank> banks = List.of(
                 new BatteryBank("987654321"), // gives 98
-                new BatteryBank("111111191")  // gives 19 (1 at the start, 9 at the end)
+                new BatteryBank("111111191")  // gives 91 (9 at the start, 1 at the end)
         );
 
         EnergyProtocol planA = s -> SearchStrategies.Greedy(s, 2);
         StaircaseController controller = new StaircaseController(banks, planA);
-        assertEquals(117L, controller.activate());
+        assertEquals(189L, controller.activate());
     }
 }
