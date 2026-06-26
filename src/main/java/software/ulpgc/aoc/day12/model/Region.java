@@ -1,4 +1,4 @@
-package software.ulpgc.aoc.day12;
+package software.ulpgc.aoc.day12.model;
 
 public record Region(int width, int height) {
     public int area() {

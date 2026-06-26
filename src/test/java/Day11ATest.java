@@ -1,10 +1,8 @@
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import software.ulpgc.aoc.day11.InputLoader;
-import software.ulpgc.aoc.day11.ReactorController;
-
-import java.io.ByteArrayInputStream;
-import java.nio.charset.StandardCharsets;
+import software.ulpgc.aoc.day11.control.RouteSolverFactory;
+import software.ulpgc.aoc.day11.model.RouteGraph;
+import software.ulpgc.aoc.day11.model.RouteSolver;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -26,9 +24,11 @@ public class Day11ATest {
     @Test
     @DisplayName("Example Part 1: Verify 5 routes")
     public void testExample() {
-        var inputStream = new ByteArrayInputStream(EXAMPLE_INPUT.getBytes(StandardCharsets.UTF_8));
-        ReactorController controller = InputLoader.load(inputStream);
-        long result = controller.countTotalRoutes();
+        RouteSolver solver = new RouteSolverFactory()
+                .from(RouteGraph.from(EXAMPLE_INPUT.lines().toList()))
+                .type(RouteSolverFactory.SolverType.A)
+                .build();
+        long result = solver.solve();
         assertEquals(5L, result);
     }
 }

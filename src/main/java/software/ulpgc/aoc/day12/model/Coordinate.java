@@ -1,4 +1,4 @@
-package software.ulpgc.aoc.day12;
+package software.ulpgc.aoc.day12.model;
 
 public record Coordinate(int r, int c) {
     public Coordinate rotate() {

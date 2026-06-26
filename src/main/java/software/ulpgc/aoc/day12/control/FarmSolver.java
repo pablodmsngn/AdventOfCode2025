@@ -1,4 +1,8 @@
-package software.ulpgc.aoc.day12;
+package software.ulpgc.aoc.day12.control;
+
+import software.ulpgc.aoc.day12.model.Coordinate;
+import software.ulpgc.aoc.day12.model.Region;
+import software.ulpgc.aoc.day12.model.Shape;
 
 import java.util.*;
 

@@ -1,12 +1,16 @@
-package software.ulpgc.aoc.day11;
+package software.ulpgc.aoc.day11.control;
 
-import java.util.*;
+import software.ulpgc.aoc.day11.model.RouteGraph;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class RouteAnalyzer {
-    private final Map<String, List<String>> connections;
+    private final RouteGraph graph;
 
-    public RouteAnalyzer(Map<String, List<String>> connections) {
-        this.connections = connections;
+    public RouteAnalyzer(RouteGraph graph) {
+        this.graph = graph;
     }
 
     public long countRoutes(String start, String end) {
@@ -33,7 +37,7 @@ public class RouteAnalyzer {
     private long dfs(String current, String end, Map<String, Long> memory) {
         if (current.equals(end)) return 1L;
         if (memory.containsKey(current)) return memory.get(current);
-        List<String> neighbors = connections.getOrDefault(current, Collections.emptyList());
+        List<String> neighbors = graph.neighborsOf(current);
         long totalRoutes = 0;
         for (String neighbor : neighbors) {
             totalRoutes += dfs(neighbor, end, memory);

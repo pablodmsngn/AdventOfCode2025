@@ -1,7 +1,7 @@
-package software.ulpgc.aoc.day12.a;
+package software.ulpgc.aoc.day12.application.a;
 
-import software.ulpgc.aoc.day12.InputLoader;
-import software.ulpgc.aoc.day12.FarmController;
+import software.ulpgc.aoc.day12.application.InputLoader;
+import software.ulpgc.aoc.day12.control.FarmController;
 
 public class Main12A {
     public static void main(String[] args) {

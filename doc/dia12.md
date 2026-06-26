@@ -1,30 +1,72 @@
-
 ### **Día 12 \- Granja de árboles de Navidad**
 
 #### **1\. Introducción y Problema**
 
-El escenario nos sitúa en una caverna bajo el Polo Norte, una granja de árboles de Navidad donde los elfos intentan colocar regalos bajo los árboles. Los regalos tienen formas geométricas irregulares (poliominós) y las zonas bajo los árboles son cuadrículas de tamaños específicos (ej. 4x4, 12x5).  
-El reto es un problema clásico de Backtracking y Empaquetado (Tiling):
+El escenario nos sitúa en una caverna bajo el Polo Norte, una granja de árboles de Navidad donde los elfos colocan regalos bajo los árboles. Los regalos tienen formas irregulares (poliominós) y las zonas son cuadrículas de tamaños concretos (ej. 4x4, 12x5). La entrada tiene dos secciones: un **catálogo de formas** y una **lista de regiones** con la cantidad de cada regalo que debe caber. Es un problema clásico de **backtracking / empaquetado** (*tiling*):
 
-* Se nos proporciona un catálogo de formas de regalos.
-* Se nos da una lista de regiones y qué cantidad de cada regalo debe caber en ella.
-* Los regalos pueden rotarse (90º, 180º...) y voltearse (espejo), pero no pueden superponerse ni salirse de los límites.
-* El objetivo es determinar cuántas de estas configuraciones son solubles, es decir, en cuántas regiones caben todos los regalos asignados sin colisiones.
+* Los regalos pueden **rotarse** (90º, 180º…) y **voltearse** (espejo), pero no pueden superponerse ni salirse de los límites.
+* El objetivo (única parte del reto) es contar **cuántas regiones son solubles**: en cuántas caben todos los regalos asignados sin colisiones.
 
-#### **2\. Arquitectura General y principios**
+A diferencia de otros días, el día 12 tiene **una sola parte**. La variación interesante es interna al solucionador: elige automáticamente entre dos representaciones del tablero (máscara `long` o `BitSet`) según el tamaño de la región, una decisión de optimización encapsulada que el cliente no ve.
 
-* **Patrón Factory Method: (En lugar de usar directamente el constructor de una clase para crear objetos, se llama a un método estático que encapsula la creación del objeto).**
-    * He aplicado este patrón en CargadorEntrada. El método estático CargadorEntrada.cargar(String) encapsula la compleja lógica de parseo del archivo de entrada (que tiene dos secciones: definición de formas y definición de problemas), entregando al cliente un ControladorGranja listo para usar.
-* **Principio de Responsabilidad Única (SRP): (Cada módulo o clase debe tener una sola razón para cambiar, reflejando la alta cohesión).**
-    * **SolucionadorGranja**: Su única responsabilidad es algorítmica. Contiene la lógica pura de backtracking para encajar piezas. Decide dinámicamente si usar optimización con long (para regiones pequeñas \< 64 celdas) o BitSet (para grandes), pero no sabe nada de ficheros ni de la estructura del problema global.
-    * **CargadorEntrada (Principio DRY):** (Cada pieza de conocimiento en un software debería tener una representación única inequívoca). Centraliza la lectura del fichero y el manejo de excepciones, evitando duplicar esta lógica en el Main o el controlador.
-* **Fundamento de Alta Cohesión: (Refiere a la idea de que las partes de un módulo o componente deben estar estrechamente relacionadas y enfocadas en una única tarea).**
-    * **Forma**: Es un ejemplo perfecto de alta cohesión. No solo almacena la lista de puntos (List\<Coordenada\>), sino que encapsula toda la lógica geométrica necesaria: rotar(), voltear(), normalizar() y generarVariaciones(). Al mantener los datos y las transformaciones geométricas juntos, el solucionador no tiene que calcular matemáticas vectoriales, solo pedir las variantes.
-* **Abstracción: (Consiste en ocultar los detalles complejos detrás de una interfaz simple).**
-    * **ControladorGranja**: Actúa como una fachada. Oculta la complejidad de iterar sobre múltiples problemas y la instanciación del **SolucionadorGranja**. El Main simplemente llama a **contarRegionesValidas**(), ignorando si el algoritmo usa máscaras de bits o recursividad.
-* **Inmutabilidad y Value Objects:**
-    * He utilizado records de Java (Coordenada, Forma, Region, DefinicionProblema) para modelar los datos. Esto es crucial en el algoritmo de backtracking, donde se generan miles de variantes de formas. Al ser inmutables, garantizamos que las rotaciones y traslaciones generen nuevas instancias sin corromper las formas originales del catálogo.
+#### **2\. Arquitectura por capas**
 
-#### **3\. Conclusión**
+He reorganizado el día en las mismas **cuatro capas** que los días anteriores, con las dependencias apuntando siempre hacia el dominio:
 
-La separación entre la geometría (Forma) y la lógica de resolución (SolucionadorGranja) permite optimizaciones de bajo nivel (como el uso de máscaras de bits long para acelerar el chequeo de colisiones) sin afectar la legibilidad del resto del sistema. El uso de SRP y Factory Method en la carga de datos mantiene el código organizado y robusto frente al complejo formato de entrada.
+```
+software.ulpgc.aoc.day12
+├── model         (dominio puro, no depende de nadie)
+│   ├── Coordinate
+│   ├── Shape
+│   ├── Region
+│   └── ProblemDefinition
+├── io            (frontera de entrada)
+│   └── ProblemLoader
+├── control       (orquesta el caso de uso)
+│   ├── FarmSolver
+│   └── FarmController
+└── application   (detalles y arranque)
+    ├── ResourceProblemLoader
+    ├── InputLoader
+    └── a/Main12A
+```
+
+**Dirección de dependencias:** `application → control → (io + model)` y `io → model`. El dominio (`model`) no importa nada del proyecto.
+
+#### **3\. Explicación clase a clase**
+
+**Capa `model` (dominio puro)**
+
+* **`Coordinate`** *(record)*: un *Value Object* inmutable (fila, columna) que encapsula sus transformaciones geométricas básicas: `rotate()` y `flip()`.
+* **`Shape`** *(record)*: un poliominó. Concentra **toda la geometría**: área, generación de las 8 isometrías (`generateVariations`), rotación, volteo y normalización. Al mantener datos y transformaciones juntos, el solucionador solo pide las variantes en vez de hacer matemática vectorial → **alta cohesión**.
+* **`Region`** *(record)*: la zona a rellenar (ancho, alto). Sabe su área y si es "pequeña" (`isSmall`, ≤ 64 celdas), criterio que guía la optimización del solucionador.
+* **`ProblemDefinition`** *(record)*: agrupa una región con la lista de piezas que deben encajar en ella. Es el caso concreto a resolver.
+
+**Capa `io` (frontera de entrada)**
+
+* **`ProblemLoader`** *(interfaz)*: define *qué* se necesita de la entrada (`List<String> loadLines()`) sin atarse a *cómo* se lee. El arranque depende de esta abstracción, no del detalle de lectura.
+
+**Capa `control` (orquesta el caso de uso)**
+
+* **`FarmSolver`** *(motor algorítmico)*: la lógica pura de backtracking. Descarta rápido por área, ordena las piezas (mayores primero) y elige dinámicamente la representación del tablero: máscara `long` para regiones pequeñas o `BitSet` para grandes. Precalcula las colocaciones válidas de cada pieza y prueba combinaciones podando colisiones. No sabe de ficheros ni del formato global.
+* **`FarmController`** *(caso de uso)*: recorre los `ProblemDefinition` y cuenta cuántos son solubles (`countValidRegions`), delegando cada uno en un `FarmSolver`. Oculta al `Main` si por dentro se usan máscaras de bits o recursión.
+
+**Capa `application` (detalles y arranque)**
+
+* **`ResourceProblemLoader`** *(implements `ProblemLoader`)*: el detalle de bajo nivel; lee un recurso del classpath y devuelve la lista de líneas.
+* **`InputLoader`** *(fachada de parseo y ensamblaje)*: encapsula el **complejo parseo** de la entrada de dos secciones (catálogo de formas y definición de problemas) y construye el `FarmController`. Expone `load(file)` para el arranque y `fromLines(lines)` para las pruebas.
+* **`Main12A`** *(composition root)*: el único punto donde se conecta el cargador con el controlador y se pide el resultado.
+
+#### **4\. Principios y diseños aplicados**
+
+* **Responsabilidad Única (SRP):** `Shape` guarda la geometría, `Region` su tamaño, `FarmSolver` solo el backtracking, `FarmController` solo recorre y cuenta, `InputLoader` solo parsea y ensambla, `ResourceProblemLoader` solo lee I/O.
+* **Alta Cohesión:** `Shape` concentra todas las transformaciones (rotar, voltear, normalizar, variaciones) en un único sitio.
+* **Abstracción / encapsulación:** la elección entre máscara `long` y `BitSet` es un detalle **interno** de `FarmSolver`; el cliente solo llama a `solve(...)`. Es un ejemplo de Strategy elegida internamente por una condición (tamaño de región), no inyectada (no hace falta: solo hay un caso de uso → **YAGNI**).
+* **Inversión de Dependencias (DIP) / ISP:** el arranque depende de la interfaz `ProblemLoader`, que expone un único método cohesivo (`loadLines`).
+* **Inmutabilidad y Value Objects:** los records (`Coordinate`, `Shape`, `Region`, `ProblemDefinition`) garantizan que las miles de rotaciones y traslaciones generen **nuevas** instancias sin corromper las formas originales del catálogo.
+* **Patrón Factory Method:** la creación de formas y problemas se centraliza en `InputLoader`, encapsulando el formato de dos secciones.
+* **Rendimiento:** representar el tablero como bits permite comprobar colisiones con operaciones `AND`/`OR` en O(1), y la poda del backtracking evita explorar ramas inválidas.
+
+#### **5\. Conclusión**
+
+El día separa la geometría (`Shape`, con sus isometrías) de la lógica de resolución (`FarmSolver`, backtracking con máscaras de bits), bajo las cuatro capas con el dominio en el centro. La inmutabilidad de los records hace seguras las miles de variantes generadas, y la elección interna entre `long` y `BitSet` ilustra una optimización encapsulada que no contamina el resto del sistema. Al tener una sola parte, no se introduce una estrategia inyectable (YAGNI), pero la abstracción de carga (`ProblemLoader`) y la separación motor/controlador mantienen el bajo acoplamiento. El resultado es fácil de probar: el test construye el `FarmController` con `InputLoader.fromLines`, sin tocar ficheros. Se verificó que el comportamiento se conserva: 2 regiones válidas sobre el ejemplo del enunciado.

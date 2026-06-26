@@ -1,4 +1,7 @@
-package software.ulpgc.aoc.day12;
+package software.ulpgc.aoc.day12.control;
+
+import software.ulpgc.aoc.day12.model.ProblemDefinition;
+
 import java.util.List;
 
 public class FarmController {

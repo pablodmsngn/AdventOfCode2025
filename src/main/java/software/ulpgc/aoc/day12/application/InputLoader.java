@@ -1,27 +1,25 @@
-package software.ulpgc.aoc.day12;
+package software.ulpgc.aoc.day12.application;
 
-import java.io.BufferedReader;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.util.*;
+import software.ulpgc.aoc.day12.control.FarmController;
+import software.ulpgc.aoc.day12.io.ProblemLoader;
+import software.ulpgc.aoc.day12.model.Coordinate;
+import software.ulpgc.aoc.day12.model.ProblemDefinition;
+import software.ulpgc.aoc.day12.model.Region;
+import software.ulpgc.aoc.day12.model.Shape;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class InputLoader {
 
     public static FarmController load(String file) {
-        InputStream is = InputLoader.class.getClassLoader().getResourceAsStream(file);
-        if (is == null) throw new RuntimeException("File not found: " + file);
-        return load(is);
+        ProblemLoader loader = new ResourceProblemLoader(file);
+        return fromLines(loader.loadLines());
     }
 
-    public static FarmController load(InputStream input) {
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(input))) {
-            return process(reader.lines().toList());
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private static FarmController process(List<String> lines) {
+    public static FarmController fromLines(List<String> lines) {
         Map<Integer, Shape> catalog = new HashMap<>();
         List<ProblemDefinition> problems = new ArrayList<>();
 

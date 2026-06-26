@@ -1,4 +1,4 @@
-package software.ulpgc.aoc.day12;
+package software.ulpgc.aoc.day12.model;
 
 import java.util.*;
 
