@@ -26,7 +26,7 @@ The recurring idea: the two parts of each day (A and B) share the core and only 
 
 ## Project structure
 
-* **`doc/`**: detailed documentation for each day (`dayNN.md`), with an introduction to the problem, the layered architecture, a class-by-class explanation, the principles applied and a conclusion. It also includes study material in `doc/pdf/`.
+* **`doc/`**: detailed documentation for each day (`dayNN.md`), with an introduction to the problem, the layered architecture, a class-by-class explanation, the principles applied and a conclusion.
 * **`src/main/java/`**: source code with the solutions, one folder per day.
 * **`src/main/resources/`**: input files (`dayNNinput`).
 * **`src/test/java/`**: unit tests (JUnit 5) that verify each part against the examples from the statement.
