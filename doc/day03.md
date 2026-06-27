@@ -62,7 +62,3 @@ software.ulpgc.aoc.day03
 * **Segregación de Interfaces (ISP):** `SequenceLoader` expone un único método cohesivo (`loadAll`).
 * **Inyección de Dependencias (DI) / Strategy:** el cargador y la estrategia se pasan desde fuera; el comportamiento se elige sin tocar el núcleo.
 * **Bajo Acoplamiento y DRY:** el procesamiento es independiente del algoritmo de selección, y la lectura de entrada está centralizada en una sola implementación reutilizable.
-
-#### **5\. Conclusión**
-
-La separación en capas mantiene el dominio en el centro y empuja los detalles (I/O, arranque) a los bordes. El Builder aísla la construcción del I/O, y el `EnergyProtocol` permite manejar lógica algorítmica (Greedy) de forma limpia: cambiar la configuración de la escalera (Parte A vs Parte B) es solo cambiar la estrategia inyectada, sin tocar el núcleo. El resultado tiene bajo acoplamiento y es fácil de probar (los tests construyen `StaircaseController` y `BatteryBank` directamente y llaman al Greedy sin tocar ficheros).

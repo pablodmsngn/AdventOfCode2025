@@ -67,7 +67,3 @@ software.ulpgc.aoc.day11
 * **DRY:** la Parte B reutiliza `countRoutes` descomponiendo en segmentos en vez de duplicar el DFS; la lectura está centralizada en una implementación.
 * **Patrón Factory Method:** `RouteGraph.from(...)` convierte texto crudo en el grafo del dominio ya válido.
 * **Memoización / rendimiento:** guardar resultados parciales en un `Map` evita recomputar subcaminos, clave en un problema combinatorio.
-
-#### **5\. Conclusión**
-
-El día separa con claridad la persistencia (`ResourceGraphLoader`), la algoritmia pura (`RouteAnalyzer`, con DFS + memoización) y la selección de la consulta (los *Solvers* tras `RouteSolver`), bajo las cuatro capas con el dominio en el centro. La Parte A (rutas totales) y la Parte B (rutas críticas por nodos intermedios) conviven por polimorfismo sin tocar el motor. El resultado tiene bajo acoplamiento y es fácil de probar: los tests construyen el `RouteGraph` con `RouteGraph.from` y el solucionador con la fábrica, sin tocar ficheros. Se verificó que el comportamiento se conserva: Parte A = 5 y Parte B = 2 sobre los ejemplos del enunciado.

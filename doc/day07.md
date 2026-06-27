@@ -67,7 +67,3 @@ software.ulpgc.aoc.day07
 * **Segregación de Interfaces (ISP):** `GridLoader` expone un único método cohesivo (`loadLines`).
 * **Inyección de Dependencias (DI) / Strategy:** el cargador y la medida se pasan desde fuera; el comportamiento se elige sin tocar el núcleo.
 * **Alta Cohesión y DRY:** la simulación está escrita una sola vez y ambas partes la reutilizan; solo cambia la lectura final.
-
-#### **5\. Conclusión**
-
-El día separa con claridad la simulación pura (`TachyonSimulator`) de su lectura (`LabProtocol`) y del parseo (`GridBuilder`), bajo las cuatro capas con el dominio en el centro. La inmutabilidad hace la propagación del haz predecible y fácil de razonar, y la abstracción de la medida permite que la Parte A (contar divisiones) y la Parte B (sumar intensidades) convivan por polimorfismo sin duplicar la simulación. El resultado tiene bajo acoplamiento y es fácil de probar: los tests construyen el `LabController` con el `GridBuilder` e inyectan la lambda de medida, sin tocar ficheros. Se verificó que el comportamiento se conserva: Parte A = 21 y Parte B = 40 sobre el ejemplo del enunciado.

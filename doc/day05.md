@@ -60,7 +60,3 @@ software.ulpgc.aoc.day05
 * **Segregación de Interfaces (ISP):** `AuditLoader` expone un único método cohesivo (`loadLines`).
 * **Inyección de Dependencias (DI) / Strategy:** el cargador y el protocolo se pasan desde fuera; el comportamiento se elige sin tocar el núcleo.
 * **Alta Cohesión y DRY:** la matemática de intervalos está centralizada en `Range`, y la lectura de entrada en una única implementación reutilizable.
-
-#### **5\. Conclusión**
-
-El día separa con claridad la matemática de intervalos (`Range`) de la orquestación (`InventoryAuditor`) y del parseo heterogéneo (`AuditBuilder`), bajo las cuatro capas con el dominio en el centro. La abstracción `FreshnessProtocol` permite que la Parte A (conteo con política) y la Parte B (fusión de rangos con protocolo nulo) convivan por polimorfismo sin tocar el código cliente. El resultado tiene bajo acoplamiento y es fácil de probar: los tests construyen `InventoryAuditor` y `Range` directamente, sin tocar ficheros.

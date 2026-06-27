@@ -67,7 +67,3 @@ software.ulpgc.aoc.day10
 * **Patrón Factory Method:** `Machine.from`, `Button.from`, `Indicator.from` y `State.fromChar` convierten texto crudo en objetos del dominio ya válidos.
 * **Inyección de Dependencias (DI) / Strategy:** las máquinas y la estrategia de resolución se pasan desde fuera; el comportamiento se elige sin tocar el núcleo.
 * **Abstracción / Tell-Don't-Ask:** el sistema trabaja con `State.ON/OFF` y delega los cálculos en los propios objetos del dominio en vez de manipular caracteres o listas crudas.
-
-#### **5\. Conclusión**
-
-El día concentra los algoritmos pesados (BFS y recursividad con memoización) en un dominio puro e inmutable (`Machine`), y aísla la variación entre la Parte A y la Parte B tras la abstracción `MachineSolver`, inyectada como lambda desde los `Main`. Bajo las cuatro capas, el controlador (`FactoryController`) solo agrega costes sin conocer el algoritmo, y los detalles (I/O, arranque) quedan en los bordes. La inmutabilidad de `Indicator` hace seguras las búsquedas (cada pulsación genera un nuevo estado, sin efectos colaterales). El resultado tiene bajo acoplamiento y es fácil de probar: los tests construyen el `FactoryController` con `Machine::from` e inyectan la estrategia, sin tocar ficheros. Se verificó que el comportamiento se conserva: Parte A = 7 y Parte B = 33 sobre el ejemplo del enunciado.

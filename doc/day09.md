@@ -69,7 +69,3 @@ software.ulpgc.aoc.day09
 * **Patrón Factory Method:** `Coordinate.from(...)` convierte texto crudo en un objeto del dominio ya válido.
 * **Inmutabilidad:** `Coordinate` y `Rectangle` son records inmutables, lo que da seguridad durante la generación masiva de combinaciones en streams.
 * **Inyección de Dependencias (DI) / Strategy:** las baldosas y el tipo se pasan desde fuera; el comportamiento se elige sin tocar el núcleo.
-
-#### **5\. Conclusión**
-
-El día centra la arquitectura en el dominio geométrico: *Value Objects* ricos (`Rectangle`) concentran los cálculos, el motor combinatorio (`RectangleFinder`) queda aislado en `control` tras la abstracción `AreaSolver`, y una fábrica selecciona la variante. Bajo las cuatro capas, la Parte A (área máxima libre) y la Parte B (área máxima dentro del polígono) conviven por polimorfismo sin tocar el código cliente. El resultado tiene bajo acoplamiento y es fácil de probar: los tests parsean el ejemplo con `Coordinate::from` y construyen el solucionador con la fábrica, sin tocar ficheros. Se verificó que el comportamiento se conserva: Parte A = 50 y Parte B = 24 sobre el ejemplo del enunciado.

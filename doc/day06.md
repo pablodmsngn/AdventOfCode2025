@@ -66,7 +66,3 @@ software.ulpgc.aoc.day06
 * **Segregación de Interfaces (ISP):** `LineLoader` expone un único método cohesivo (`load`).
 * **Inyección de Dependencias (DI):** la estrategia de parseo se pasa desde fuera; el comportamiento se elige sin tocar el núcleo.
 * **Alta Cohesión y DRY:** la aritmética está centralizada en el enum funcional `Operator` (evitando bloques condicionales), y la lectura de entrada en una única implementación.
-
-#### **5\. Conclusión**
-
-El día muestra cómo una misma entrada puede interpretarse de formas radicalmente distintas aislando el parseo tras la abstracción `OperationBuilder` (Strategy), mientras el motor de cálculo (`CompactorController`) permanece inmutable. Los enums funcionales (`Operator`) integran lógica y datos con elegancia, evitando condicionales. Bajo las cuatro capas, el dominio queda en el centro y los detalles (I/O, arranque) en los bordes, dando un sistema con bajo acoplamiento, fácil de extender (nuevas estrategias) y fácil de probar (los tests construyen `Operation` y `Operator` directamente).

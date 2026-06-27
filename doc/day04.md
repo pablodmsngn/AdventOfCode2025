@@ -69,7 +69,3 @@ software.ulpgc.aoc.day04
 * **Inyección de Dependencias (DI) / Strategy:** el cargador y el tipo se pasan desde fuera; el comportamiento se elige sin tocar el núcleo.
 * **Inmutabilidad y robustez:** `removeRolls` devuelve una nueva cuadrícula (sin efectos colaterales) y el *padding* simplifica la búsqueda de vecinos eliminando comprobaciones de límites.
 * **Bajo Acoplamiento y DRY:** la regla de accesibilidad es independiente de cómo se explota (A o B), y la lectura de entrada está centralizada en una sola implementación.
-
-#### **5\. Conclusión**
-
-El día combina robustez algorítmica (padding e inmutabilidad) con patrones de diseño (Factory/Builder) bajo las cuatro capas. El dominio queda en el centro, los detalles (I/O, arranque) en los bordes, y la abstracción `Executor` permite que la Parte A (estática) y la Parte B (dinámica) convivan por polimorfismo sin tocar el código cliente. El resultado es un sistema con bajo acoplamiento, eficiente en memoria (optimizador estático) y fácil de probar (los tests construyen `WarehouseGrid` y los solucionadores directamente, sin tocar ficheros). Se verificó que el comportamiento se conserva: Parte A = 13 y Parte B = 43 sobre el ejemplo del enunciado.

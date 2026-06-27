@@ -63,7 +63,3 @@ software.ulpgc.aoc.day01
 * **Bajo Acoplamiento y Alta Cohesión:** las capas se comunican por abstracciones y cada clase agrupa lo que está estrechamente relacionado.
 * **DRY:** la lectura de entrada está centralizada en una sola implementación reutilizable.
 * **Tell, Don't Ask / encapsulamiento:** se le ordena a `Safe` que aplique una instrucción (`apply`) en vez de preguntarle su estado para decidir fuera; el `Dial` es inmutable y normaliza en su propio constructor.
-
-#### **5\. Conclusión**
-
-La separación en capas mantiene el dominio en el centro y empuja los detalles (I/O, arranque) a los bordes. El resultado es un sistema con bajo acoplamiento, fácil de probar (los tests instancian `Safe` con la estrategia que quieran, sin tocar ficheros) y preparado para crecer: cambiar la fuente de datos o añadir una nueva regla no obliga a modificar el núcleo. Se verificó que el comportamiento se conserva: ambas partes y todos los casos de prueba (Parte A = 3, Parte B = 6 sobre el ejemplo) siguen dando el mismo resultado tras la refactorización.

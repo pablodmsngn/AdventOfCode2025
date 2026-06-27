@@ -71,7 +71,3 @@ software.ulpgc.aoc.day08
 * **Inmutabilidad y seguridad en paralelo:** al ser `Box`, `BoxPair` y `Circuit` records inmutables, el procesamiento paralelo de pares (`parallel()`) queda libre de condiciones de carrera.
 * **Inyección de Dependencias (DI) / Strategy:** los circuitos y el tipo se pasan desde fuera; el comportamiento se elige sin tocar el núcleo.
 * **Alta Cohesión y DRY:** la geometría está en `Box`, el parseo en `Circuit`, y la lectura de entrada centralizada en una sola implementación.
-
-#### **5\. Conclusión**
-
-El día aísla la lógica combinatoria (`CircuitConnector`) tras una abstracción de caso de uso (`CircuitSolver`) seleccionada por una fábrica, todo bajo las cuatro capas con el dominio en el centro. Los records inmutables modelan el dominio (cajas, pares, circuitos) con seguridad de tipos y permiten el procesamiento en paralelo sin riesgos de concurrencia. La Parte A (factor de seguridad con límite) y la Parte B (unificación total) conviven por polimorfismo sin tocar el código cliente. El resultado tiene bajo acoplamiento y es fácil de probar: los tests parsean el ejemplo con `Circuit::fromText` y construyen el solucionador con la fábrica, sin tocar ficheros. Se verificó que el comportamiento se conserva: Parte A = 40 y Parte B = 25272 sobre el ejemplo del enunciado.

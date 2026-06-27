@@ -66,7 +66,3 @@ software.ulpgc.aoc.day12
 * **Inmutabilidad y Value Objects:** los records (`Coordinate`, `Shape`, `Region`, `ProblemDefinition`) garantizan que las miles de rotaciones y traslaciones generen **nuevas** instancias sin corromper las formas originales del catálogo.
 * **Patrón Factory Method:** la creación de formas y problemas se centraliza en `InputLoader`, encapsulando el formato de dos secciones.
 * **Rendimiento:** representar el tablero como bits permite comprobar colisiones con operaciones `AND`/`OR` en O(1), y la poda del backtracking evita explorar ramas inválidas.
-
-#### **5\. Conclusión**
-
-El día separa la geometría (`Shape`, con sus isometrías) de la lógica de resolución (`FarmSolver`, backtracking con máscaras de bits), bajo las cuatro capas con el dominio en el centro. La inmutabilidad de los records hace seguras las miles de variantes generadas, y la elección interna entre `long` y `BitSet` ilustra una optimización encapsulada que no contamina el resto del sistema. Al tener una sola parte, no se introduce una estrategia inyectable (YAGNI), pero la abstracción de carga (`ProblemLoader`) y la separación motor/controlador mantienen el bajo acoplamiento. El resultado es fácil de probar: el test construye el `FarmController` con `InputLoader.fromLines`, sin tocar ficheros. Se verificó que el comportamiento se conserva: 2 regiones válidas sobre el ejemplo del enunciado.

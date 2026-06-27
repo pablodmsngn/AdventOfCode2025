@@ -60,7 +60,3 @@ software.ulpgc.aoc.day02
 * **Segregación de Interfaces (ISP):** `RangeLoader` expone un único método cohesivo (`loadAll`).
 * **Inyección de Dependencias (DI) / Strategy:** el cargador y la estrategia se pasan desde fuera; el comportamiento se elige sin tocar el núcleo.
 * **Bajo Acoplamiento y DRY:** el procesamiento es independiente de las reglas de validación, y la lectura de entrada está centralizada en una sola implementación reutilizable.
-
-#### **5\. Conclusión**
-
-Al usar Streams y expresiones regulares bajo estas capas, se evita la complejidad de los bucles anidados y se separa con claridad el procesamiento (`Engine`) de las reglas (`ValidationStrategies`) y del I/O (`ResourceRangeLoader`). El resultado es un sistema con bajo acoplamiento, fácil de probar (los tests construyen `Engine` e `IdRange` directamente, sin tocar ficheros) y preparado para crecer. Se verificó que el comportamiento se conserva: los ejemplos de ambas partes siguen dando los mismos resultados (suma 33 en la Parte A y 210 en la Parte B).
