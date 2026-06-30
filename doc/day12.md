@@ -11,27 +11,28 @@ A diferencia de otros días, el día 12 tiene **una sola parte**. La variación 
 
 #### **2\. Arquitectura por capas**
 
-He reorganizado el día en las mismas **cuatro capas** que los días anteriores, con las dependencias apuntando siempre hacia el dominio:
+He reorganizado el día en las mismas **tres capas** (más la frontera `common.io` compartida) que los días anteriores, con las dependencias apuntando siempre hacia el dominio:
 
 ```
-software.ulpgc.aoc.day12
-├── model         (dominio puro, no depende de nadie)
-│   ├── Coordinate
-│   ├── Shape
-│   ├── Region
-│   └── ProblemDefinition
-├── io            (frontera de entrada)
-│   └── ProblemLoader
-├── control       (orquesta el caso de uso)
-│   ├── FarmSolver
-│   └── FarmController
-└── application   (detalles y arranque)
-    ├── ResourceProblemLoader
-    ├── InputLoader
-    └── a/Main12A
+software.ulpgc.aoc
+├── common.io     (entrada compartida por TODOS los días)
+│   ├── LineLoader          (puerto: List<String> loadLines())
+│   └── ResourceLineLoader  (adaptador: lee el recurso del classpath)
+└── day12
+    ├── model         (dominio puro, no depende de nadie)
+    │   ├── Coordinate
+    │   ├── Shape
+    │   ├── Region
+    │   └── ProblemDefinition
+    ├── control       (orquesta el caso de uso)
+    │   ├── FarmSolver
+    │   └── FarmController
+    └── application   (detalles y arranque)
+        ├── InputLoader   (parsea las líneas al dominio)
+        └── a/Main12A
 ```
 
-**Dirección de dependencias:** `application → control → (io + model)` y `io → model`. El dominio (`model`) no importa nada del proyecto.
+**Dirección de dependencias:** `application → control → model` y `application → common.io`. El dominio (`model`) no importa ninguna otra capa; el loader compartido (`common.io`) tampoco depende de nadie.
 
 #### **3\. Explicación clase a clase**
 
@@ -42,9 +43,9 @@ software.ulpgc.aoc.day12
 * **`Region`** *(record)*: la zona a rellenar (ancho, alto). Sabe su área y si es "pequeña" (`isSmall`, ≤ 64 celdas), criterio que guía la optimización del solucionador.
 * **`ProblemDefinition`** *(record)*: agrupa una región con la lista de piezas que deben encajar en ella. Es el caso concreto a resolver.
 
-**Capa `io` (frontera de entrada)**
+**Frontera de entrada (compartida: `common.io`)**
 
-* **`ProblemLoader`** *(interfaz)*: define *qué* se necesita de la entrada (`List<String> loadLines()`) sin atarse a *cómo* se lee. El arranque depende de esta abstracción, no del detalle de lectura.
+* **`LineLoader`** *(interfaz, puerto)* y **`ResourceLineLoader`** *(adaptador)*: viven en el paquete común `software.ulpgc.aoc.common.io` y los reutilizan **todos los días**. `loadLines()` devuelve las líneas crudas del recurso (`List<String>`); el parseo al dominio ocurre después, en la capa `application` (InputLoader parsea las dos secciones (catálogo + problemas)). Así se centraliza la lectura (una sola implementación, sin duplicar) y se separa de la interpretación (SRP).
 
 **Capa `control` (orquesta el caso de uso)**
 
@@ -53,13 +54,12 @@ software.ulpgc.aoc.day12
 
 **Capa `application` (detalles y arranque)**
 
-* **`ResourceProblemLoader`** *(implements `ProblemLoader`)*: el detalle de bajo nivel; lee un recurso del classpath y devuelve la lista de líneas.
 * **`InputLoader`** *(fachada de parseo y ensamblaje)*: encapsula el **complejo parseo** de la entrada de dos secciones (catálogo de formas y definición de problemas) y construye el `FarmController`. Expone `load(file)` para el arranque y `fromLines(lines)` para las pruebas.
 * **`Main12A`** *(composition root)*: el único punto donde se conecta el cargador con el controlador y se pide el resultado.
 
 #### **4\. Principios y diseños aplicados**
 
-* **Responsabilidad Única (SRP):** `Shape` guarda la geometría, `Region` su tamaño, `FarmSolver` solo el backtracking, `FarmController` solo recorre y cuenta, `InputLoader` solo parsea y ensambla, `ResourceProblemLoader` solo lee I/O.
+* **Responsabilidad Única (SRP):** `Shape` guarda la geometría, `Region` su tamaño, `FarmSolver` solo el backtracking, `FarmController` solo recorre y cuenta, `InputLoader` solo parsea y ensambla, `ResourceLineLoader` (compartido) solo lee I/O.
 * **Alta Cohesión:** `Shape` concentra todas las transformaciones (rotar, voltear, normalizar, variaciones) en un único sitio.
 * **Abstracción / encapsulación:** la elección entre máscara `long` y `BitSet` es un detalle **interno** de `FarmSolver`; el cliente solo llama a `solve(...)`. Es un ejemplo de Strategy elegida internamente por una condición (tamaño de región), no inyectada (no hace falta: solo hay un caso de uso → **YAGNI**).
 * **Inversión de Dependencias (DIP) / ISP:** el arranque depende de la interfaz `ProblemLoader`, que expone un único método cohesivo (`loadLines`).

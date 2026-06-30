@@ -11,27 +11,28 @@ Como lo único que cambia es *cómo* se parsea la misma cuadrícula, esa lógica
 
 #### **2\. Arquitectura por capas**
 
-He reorganizado el día en las mismas **cuatro capas** que los días anteriores, con las dependencias apuntando siempre hacia el dominio:
+He reorganizado el día en las mismas **tres capas** (más la frontera `common.io` compartida) que los días anteriores, con las dependencias apuntando siempre hacia el dominio:
 
 ```
-software.ulpgc.aoc.day06
-├── model         (dominio puro, no depende de nadie)
-│   ├── Operator
-│   ├── Operation
-│   └── OperationBuilder
-├── io            (frontera de entrada)
-│   └── LineLoader
-├── control       (orquesta el caso de uso)
-│   ├── CompactorController
-│   ├── VerticalAnalyzer
-│   └── CephalopodAnalyzer
-└── application   (detalles y arranque)
-    ├── ResourceLineLoader
-    ├── InputLoader
-    └── a/Main06A, b/Main06B
+software.ulpgc.aoc
+├── common.io     (entrada compartida por TODOS los días)
+│   ├── LineLoader          (puerto: List<String> loadLines())
+│   └── ResourceLineLoader  (adaptador: lee el recurso del classpath)
+└── day06
+    ├── model         (dominio puro, no depende de nadie)
+    │   ├── Operator
+    │   ├── Operation
+    │   └── OperationBuilder
+    ├── control       (orquesta el caso de uso)
+    │   ├── CompactorController
+    │   ├── VerticalAnalyzer
+    │   └── CephalopodAnalyzer
+    └── application   (detalles y arranque)
+        ├── InputLoader   (parsea las líneas al dominio)
+        └── a/Main06A, b/Main06B
 ```
 
-**Dirección de dependencias:** `application → control → (io + model)` y `io → model`. El dominio (`model`) no importa nada del proyecto.
+**Dirección de dependencias:** `application → control → model` y `application → common.io`. El dominio (`model`) no importa ninguna otra capa; el loader compartido (`common.io`) tampoco depende de nadie.
 
 #### **3\. Explicación clase a clase**
 
@@ -41,9 +42,9 @@ software.ulpgc.aoc.day06
 * **`Operation`** *(record)*: un *Value Object* que agrupa los operandos y su operador. Su única responsabilidad es orquestar el cálculo final mediante una reducción (`calculate()`), delegando la matemática pura al `Operator` → **alta cohesión**.
 * **`OperationBuilder`** *(interfaz)*: la **abstracción** de la estrategia de parseo (`addLine(String)` + `Stream<Operation> build()`). Vive en el dominio porque solo habla el idioma del dominio; es la pieza que permite intercambiar cómo se interpreta la cuadrícula sin tocar el resto.
 
-**Capa `io` (frontera de entrada)**
+**Frontera de entrada (compartida: `common.io`)**
 
-* **`LineLoader`** *(interfaz)*: define *qué* se necesita de la entrada (`Stream<String> load()`, líneas crudas) sin atarse a *cómo* se lee. Devuelve líneas crudas y no un tipo de `control`, de modo que `io` solo dependa de `model`.
+* **`LineLoader`** *(interfaz, puerto)* y **`ResourceLineLoader`** *(adaptador)*: viven en el paquete común `software.ulpgc.aoc.common.io` y los reutilizan **todos los días**. `loadLines()` devuelve las líneas crudas del recurso (`List<String>`); el parseo al dominio ocurre después, en la capa `application` (el OperationBuilder inyectado parsea). Así se centraliza la lectura (una sola implementación, sin duplicar) y se separa de la interpretación (SRP).
 
 **Capa `control` (orquesta el caso de uso)**
 
@@ -53,7 +54,6 @@ software.ulpgc.aoc.day06
 
 **Capa `application` (detalles y arranque)**
 
-* **`ResourceLineLoader`** *(implements `LineLoader`)*: el detalle de bajo nivel; lee un recurso del classpath y materializa las líneas (`reader.lines().toList().stream()`) para evitar trabajar sobre un stream ya cerrado.
 * **`InputLoader`** *(fachada de ensamblaje)*: punto estático que conecta el cargador con la estrategia inyectada (`load(filename, builder)`): lee las líneas, las alimenta al `OperationBuilder` y devuelve un `CompactorController` listo. Aísla el cableado del I/O.
 * **`Main06A` / `Main06B`** *(composition root)*: el único punto donde se elige la estrategia. La Parte A inyecta `new VerticalAnalyzer()` y la Parte B `new CephalopodAnalyzer()`; el resto del flujo es idéntico.
 
@@ -63,6 +63,6 @@ software.ulpgc.aoc.day06
 * **Inversión de Dependencias (DIP):** `CompactorController` solo conoce un `Stream<Operation>` y el ensamblaje depende de la abstracción `OperationBuilder`, no de las clases concretas de análisis; el arranque depende de la interfaz `LineLoader`.
 * **Abierto/Cerrado (OCP):** si apareciera una "Parte C" (ej. lectura en diagonal), basta crear un nuevo `OperationBuilder` e inyectarlo; el motor de cálculo y la carga permanecen inalterados.
 * **Responsabilidad Única (SRP):** `Operator` guarda la aritmética, `Operation` orquesta su cálculo, los analizadores solo parsean, `CompactorController` solo suma, `ResourceLineLoader` solo lee I/O, `InputLoader` solo ensambla.
-* **Segregación de Interfaces (ISP):** `LineLoader` expone un único método cohesivo (`load`).
+* **Segregación de Interfaces (ISP):** el puerto compartido `LineLoader` expone un único método cohesivo (`loadLines`).
 * **Inyección de Dependencias (DI):** la estrategia de parseo se pasa desde fuera; el comportamiento se elige sin tocar el núcleo.
 * **Alta Cohesión y DRY:** la aritmética está centralizada en el enum funcional `Operator` (evitando bloques condicionales), y la lectura de entrada en una única implementación.

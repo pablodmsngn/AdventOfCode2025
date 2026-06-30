@@ -11,25 +11,27 @@ Ambas partes leen la misma entrada y comparten toda la mecánica del dial; lo ú
 
 #### **2\. Arquitectura por capas**
 
-He reorganizado el día en **cuatro capas**, de modo que las dependencias apuntan siempre hacia el dominio y nunca al revés:
+He reorganizado el día en **tres capas** (más la frontera `common.io` compartida), de modo que las dependencias apuntan siempre hacia el dominio y nunca al revés:
 
 ```
-software.ulpgc.aoc.day01
-├── model         (dominio puro, no depende de nadie)
-│   ├── Dial
-│   ├── Instruction
-│   └── SecurityProtocol
-├── io            (frontera de entrada)
-│   └── InstructionLoader
-├── control       (orquesta el caso de uso)
-│   ├── Safe
-│   └── SecurityProtocols
-└── application   (detalles y arranque)
-    ├── ResourceInstructionLoader
-    └── a/Main01a, b/Main01b
+software.ulpgc.aoc
+├── common.io     (entrada compartida por TODOS los días)
+│   ├── LineLoader          (puerto: List<String> loadLines())
+│   └── ResourceLineLoader  (adaptador: lee el recurso del classpath)
+└── day01
+    ├── model         (dominio puro, no depende de nadie)
+    │   ├── Dial
+    │   ├── Instruction
+    │   └── SecurityProtocol
+    ├── control       (orquesta el caso de uso)
+    │   ├── Safe
+    │   └── SecurityProtocols
+    └── application   (detalles y arranque)
+        ├── InputLoader   (parsea las líneas al dominio)
+        └── a/Main01a, b/Main01b
 ```
 
-**Dirección de dependencias:** `application → control → (io + model)` y `io → model`. El dominio (`model`) no importa nada del proyecto, así que es el centro estable del sistema.
+**Dirección de dependencias:** `application → control → model` y `application → common.io`. El dominio (`model`) no importa ninguna otra capa; el loader compartido (`common.io`) tampoco depende de nadie.
 
 #### **3\. Explicación clase a clase**
 
@@ -39,9 +41,9 @@ software.ulpgc.aoc.day01
 * **`Instruction`** *(record)*: representa una orden de giro ("L10", "R48"). Concentra el parseo y la validación en `of(String)`, que devuelve un `Optional` y descarta entradas inválidas (nulos, vacíos, basura). Expone `movement()` (L resta, R suma). Sacar esto de la caja fuerte es lo que le da a `Safe` una sola responsabilidad.
 * **`SecurityProtocol`** *(interfaz funcional)*: la **abstracción** de la regla de puntuación (`calculatePoints(oldDial, movement, newDial)`). Vive en el dominio porque solo habla el idioma del dominio (`Dial`) y no depende de ninguna otra capa. Es la pieza que permite el DIP.
 
-**Capa `io` (frontera de entrada)**
+**Frontera de entrada (compartida: `common.io`)**
 
-* **`InstructionLoader`** *(interfaz)*: define *qué* se necesita de la entrada (`List<Instruction> loadAll()`) sin decir *cómo* se obtiene. El control y el arranque dependen de esta abstracción, no del detalle de lectura.
+* **`LineLoader`** *(interfaz, puerto)* y **`ResourceLineLoader`** *(adaptador)*: viven en el paquete común `software.ulpgc.aoc.common.io` y los reutilizan **todos los días**. `loadLines()` devuelve las líneas crudas del recurso (`List<String>`); el parseo al dominio ocurre después, en la capa `application` (Main01a/b parsean con InputLoader). Así se centraliza la lectura (una sola implementación, sin duplicar) y se separa de la interpretación (SRP).
 
 **Capa `control` (orquesta el caso de uso)**
 
@@ -50,15 +52,15 @@ software.ulpgc.aoc.day01
 
 **Capa `application` (detalles y arranque)**
 
-* **`ResourceInstructionLoader`** *(implements `InstructionLoader`)*: el detalle de bajo nivel; lee las líneas de un recurso del classpath y las convierte en `Instruction`. Es intercambiable (otra fuente de datos = otra implementación).
+* **`InputLoader`** *(fachada de ensamblaje, en `application`)*: usa el `ResourceLineLoader` compartido para leer las líneas y las parsea al dominio antes de construir el caso de uso.
 * **`Main01a` / `Main01b`** *(composition root)*: el único punto donde se eligen las piezas concretas (qué cargador y qué protocolo) y se conectan por inyección. La Parte A y la Parte B se diferencian solo en la estrategia inyectada.
 
 #### **4\. Principios y diseños aplicados**
 
 * **Inversión de Dependencias (DIP):** `Safe` depende de la abstracción `SecurityProtocol`, no de la lógica concreta de A o B; el arranque depende de `InstructionLoader`, no de cómo se leen los datos.
 * **Abierto/Cerrado (OCP):** añadir una regla es inyectar otra estrategia; `Safe` queda cerrada a modificación y abierta a extensión por polimorfismo.
-* **Responsabilidad Única (SRP):** `Dial` solo hace aritmética, `Instruction` solo parsea/valida, `Safe` solo orquesta, `ResourceInstructionLoader` solo lee I/O.
-* **Segregación de Interfaces (ISP):** `InstructionLoader` expone un único método cohesivo.
+* **Responsabilidad Única (SRP):** `Dial` solo hace aritmética, `Instruction` solo parsea/valida, `Safe` solo orquesta, `ResourceLineLoader` (compartido) solo lee I/O.
+* **Segregación de Interfaces (ISP):** el puerto compartido `LineLoader` expone un único método cohesivo (`loadLines`).
 * **Inyección de Dependencias (DI) / Patrón Strategy:** el protocolo y el cargador se pasan desde fuera; el comportamiento se elige sin tocar el núcleo.
 * **Bajo Acoplamiento y Alta Cohesión:** las capas se comunican por abstracciones y cada clase agrupa lo que está estrechamente relacionado.
 * **DRY:** la lectura de entrada está centralizada en una sola implementación reutilizable.

@@ -11,28 +11,29 @@ Como lo único que cambia es el criterio que decide qué rectángulo vale, ambas
 
 #### **2\. Arquitectura por capas**
 
-He reorganizado el día en las mismas **cuatro capas** que los días anteriores, con las dependencias apuntando siempre hacia el dominio:
+He reorganizado el día en las mismas **tres capas** (más la frontera `common.io` compartida) que los días anteriores, con las dependencias apuntando siempre hacia el dominio:
 
 ```
-software.ulpgc.aoc.day09
-├── model         (dominio puro, no depende de nadie)
-│   ├── Coordinate
-│   ├── Rectangle
-│   └── AreaSolver
-├── io            (frontera de entrada)
-│   └── TileLoader
-├── control       (orquesta el caso de uso)
-│   ├── RectangleFinder
-│   ├── MaxAreaSolver
-│   ├── AllowedAreaSolver
-│   └── AreaSolverFactory
-└── application   (detalles y arranque)
-    ├── ResourceTileLoader
-    ├── InputLoader
-    └── a/Main09A, b/Main09B
+software.ulpgc.aoc
+├── common.io     (entrada compartida por TODOS los días)
+│   ├── LineLoader          (puerto: List<String> loadLines())
+│   └── ResourceLineLoader  (adaptador: lee el recurso del classpath)
+└── day09
+    ├── model         (dominio puro, no depende de nadie)
+    │   ├── Coordinate
+    │   ├── Rectangle
+    │   └── AreaSolver
+    ├── control       (orquesta el caso de uso)
+    │   ├── RectangleFinder
+    │   ├── MaxAreaSolver
+    │   ├── AllowedAreaSolver
+    │   └── AreaSolverFactory
+    └── application   (detalles y arranque)
+        ├── InputLoader   (parsea las líneas al dominio)
+        └── a/Main09A, b/Main09B
 ```
 
-**Dirección de dependencias:** `application → control → (io + model)` y `io → model`. El dominio (`model`) no importa nada del proyecto.
+**Dirección de dependencias:** `application → control → model` y `application → common.io`. El dominio (`model`) no importa ninguna otra capa; el loader compartido (`common.io`) tampoco depende de nadie.
 
 #### **3\. Explicación clase a clase**
 
@@ -42,9 +43,9 @@ software.ulpgc.aoc.day09
 * **`Rectangle`** *(record)*: un *Value Object* rico que no solo guarda dos esquinas, sino que **encapsula toda la geometría**: ancho, alto, área, si es vertical y sus límites (`minX`, `maxX`, `minY`, `maxY`). Así los cálculos geométricos no se dispersan por el resto del programa → **alta cohesión**.
 * **`AreaSolver`** *(interfaz funcional)*: la **abstracción** del caso de uso (`long solve()`). Vive en el dominio porque no depende de ninguna otra capa; es la pieza que permite el DIP y el polimorfismo entre la Parte A y la B.
 
-**Capa `io` (frontera de entrada)**
+**Frontera de entrada (compartida: `common.io`)**
 
-* **`TileLoader`** *(interfaz)*: define *qué* se necesita de la entrada (`List<String> loadLines()`) sin atarse a *cómo* se lee. El arranque depende de esta abstracción, no del detalle de lectura.
+* **`LineLoader`** *(interfaz, puerto)* y **`ResourceLineLoader`** *(adaptador)*: viven en el paquete común `software.ulpgc.aoc.common.io` y los reutilizan **todos los días**. `loadLines()` devuelve las líneas crudas del recurso (`List<String>`); el parseo al dominio ocurre después, en la capa `application` (InputLoader parsea con Coordinate.from). Así se centraliza la lectura (una sola implementación, sin duplicar) y se separa de la interpretación (SRP).
 
 **Capa `control` (orquesta el caso de uso)**
 
@@ -55,7 +56,6 @@ software.ulpgc.aoc.day09
 
 **Capa `application` (detalles y arranque)**
 
-* **`ResourceTileLoader`** *(implements `TileLoader`)*: el detalle de bajo nivel; lee un recurso del classpath y devuelve la lista de líneas. Es intercambiable por otra fuente de datos.
 * **`InputLoader`** *(fachada de ensamblaje)*: lee las líneas, las parsea a coordenadas (`Coordinate::from`) y configura el `AreaSolver` correcto vía la fábrica (`loadMaxArea`, `loadAllowedArea`).
 * **`Main09A` / `Main09B`** *(composition root)*: el único punto donde se elige la estrategia. El resto del flujo es idéntico: `solver.solve()`.
 
@@ -64,8 +64,8 @@ software.ulpgc.aoc.day09
 * **Inversión de Dependencias (DIP):** los `Main` y la fábrica dependen de la abstracción `AreaSolver`, no de las clases concretas; el arranque depende de la interfaz `TileLoader`, no de cómo se leen los datos.
 * **Abierto/Cerrado (OCP):** añadir otra restricción (ej. rectángulos de un tamaño máximo) es crear otro `AreaSolver` e inyectarlo por la fábrica; el motor `RectangleFinder` queda inalterado.
 * **Patrón Builder + Factory:** `AreaSolverFactory` configura paso a paso y oculta qué implementación concreta se instancia.
-* **Responsabilidad Única (SRP):** `Rectangle` guarda la geometría, `RectangleFinder` solo la búsqueda, cada *Solver* solo su variante, `ResourceTileLoader` solo lee I/O, `AreaSolverFactory` solo ensambla.
-* **Segregación de Interfaces (ISP):** `TileLoader` expone un único método cohesivo (`loadLines`).
+* **Responsabilidad Única (SRP):** `Rectangle` guarda la geometría, `RectangleFinder` solo la búsqueda, cada *Solver* solo su variante, `ResourceLineLoader` (compartido) solo lee I/O, `AreaSolverFactory` solo ensambla.
+* **Segregación de Interfaces (ISP):** el puerto compartido `LineLoader` expone un único método cohesivo (`loadLines`).
 * **Patrón Factory Method:** `Coordinate.from(...)` convierte texto crudo en un objeto del dominio ya válido.
 * **Inmutabilidad:** `Coordinate` y `Rectangle` son records inmutables, lo que da seguridad durante la generación masiva de combinaciones en streams.
 * **Inyección de Dependencias (DI) / Strategy:** las baldosas y el tipo se pasan desde fuera; el comportamiento se elige sin tocar el núcleo.

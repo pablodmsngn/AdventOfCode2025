@@ -4,17 +4,22 @@ Repository of my **Advent of Code 2025** solutions in **Java**. Beyond solving e
 
 ## Layered architecture
 
-Each day is structured in four layers, with dependencies always pointing towards the domain:
+Each day is structured in three layers, plus a single shared input boundary reused by all days:
 
 ```
-software.ulpgc.aoc.dayNN
-├── model         Pure domain: Value Objects (records) and abstractions. Depends on nothing.
-├── io            Input boundary: loader interfaces (what is needed, not how it is read).
-├── control       Orchestrates the use case: controllers, algorithmic engines, builders and strategies.
-└── application   Details and startup: I/O implementations, assembly and the Mains (composition root).
+software.ulpgc.aoc
+├── common.io     Shared input boundary (one for all days):
+│   ├── LineLoader          port: List<String> loadLines()  (what is needed, not how it is read)
+│   └── ResourceLineLoader  adapter: reads a classpath resource into lines
+└── dayNN
+    ├── model         Pure domain: Value Objects (records) and abstractions. Depends on nothing.
+    ├── control       Orchestrates the use case: controllers, algorithmic engines, builders and strategies.
+    └── application   Startup and assembly: InputLoader (parses lines into the domain) and the Mains (composition root).
 ```
 
-**Dependency direction:** `application → control → (io + model)` and `io → model`. The domain (`model`) never imports another layer.
+**Dependency direction:** `application → control → model` and `application → common.io`. The domain (`model`) never imports another layer, and the shared loader (`common.io`) depends on nothing.
+
+Every day reads its input the same way: the shared `ResourceLineLoader` returns the raw lines, and each day's `InputLoader` (in `application`) parses those lines into its own domain objects (e.g. via `Range.fromText`, `Machine.from` or a builder). This keeps reading (a single shared adapter) cleanly separated from parsing (per-day, in the application layer) — strict SRP and zero duplication of the file-reading code.
 
 ## Principles and patterns applied
 
@@ -27,7 +32,7 @@ The recurring idea: the two parts of each day (A and B) share the core and only 
 ## Project structure
 
 * **`doc/`**: detailed documentation for each day (`dayNN.md`), with an introduction to the problem, the layered architecture, a class-by-class explanation, the principles applied and a conclusion.
-* **`src/main/java/`**: source code with the solutions, one folder per day.
+* **`src/main/java/`**: source code with the solutions, one folder per day, plus the shared `common.io` loader.
 * **`src/main/resources/`**: input files (`dayNNinput`).
 * **`src/test/java/`**: unit tests (JUnit 5) that verify each part against the examples from the statement.
 

@@ -1,7 +1,8 @@
 package software.ulpgc.aoc.day11.application;
 
+import software.ulpgc.aoc.common.io.LineLoader;
+import software.ulpgc.aoc.common.io.ResourceLineLoader;
 import software.ulpgc.aoc.day11.control.RouteSolverFactory;
-import software.ulpgc.aoc.day11.io.GraphLoader;
 import software.ulpgc.aoc.day11.model.RouteGraph;
 import software.ulpgc.aoc.day11.model.RouteSolver;
 
@@ -16,7 +17,7 @@ public class InputLoader {
     }
 
     private static RouteSolver build(String file, RouteSolverFactory.SolverType type) {
-        GraphLoader loader = new ResourceGraphLoader(file);
+        LineLoader loader = new ResourceLineLoader(file);
         RouteGraph graph = RouteGraph.from(loader.loadLines());
         return new RouteSolverFactory()
                 .from(graph)

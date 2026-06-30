@@ -1,7 +1,8 @@
 package software.ulpgc.aoc.day12.application;
 
+import software.ulpgc.aoc.common.io.LineLoader;
+import software.ulpgc.aoc.common.io.ResourceLineLoader;
 import software.ulpgc.aoc.day12.control.FarmController;
-import software.ulpgc.aoc.day12.io.ProblemLoader;
 import software.ulpgc.aoc.day12.model.Coordinate;
 import software.ulpgc.aoc.day12.model.ProblemDefinition;
 import software.ulpgc.aoc.day12.model.Region;
@@ -15,7 +16,7 @@ import java.util.Map;
 public class InputLoader {
 
     public static FarmController load(String file) {
-        ProblemLoader loader = new ResourceProblemLoader(file);
+        LineLoader loader = new ResourceLineLoader(file);
         return fromLines(loader.loadLines());
     }
 

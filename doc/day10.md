@@ -11,27 +11,28 @@ Como ambas partes recorren la misma lista de máquinas y solo cambian la funció
 
 #### **2\. Arquitectura por capas**
 
-He reorganizado el día en las mismas **cuatro capas** que los días anteriores, con las dependencias apuntando siempre hacia el dominio:
+He reorganizado el día en las mismas **tres capas** (más la frontera `common.io` compartida) que los días anteriores, con las dependencias apuntando siempre hacia el dominio:
 
 ```
-software.ulpgc.aoc.day10
-├── model         (dominio puro, no depende de nadie)
-│   ├── State
-│   ├── Button
-│   ├── Indicator
-│   ├── Machine
-│   └── MachineSolver
-├── io            (frontera de entrada)
-│   └── MachineLoader
-├── control       (orquesta el caso de uso)
-│   └── FactoryController
-└── application   (detalles y arranque)
-    ├── ResourceMachineLoader
-    ├── InputLoader
-    └── a/Main10A, b/Main10B
+software.ulpgc.aoc
+├── common.io     (entrada compartida por TODOS los días)
+│   ├── LineLoader          (puerto: List<String> loadLines())
+│   └── ResourceLineLoader  (adaptador: lee el recurso del classpath)
+└── day10
+    ├── model         (dominio puro, no depende de nadie)
+    │   ├── State
+    │   ├── Button
+    │   ├── Indicator
+    │   ├── Machine
+    │   └── MachineSolver
+    ├── control       (orquesta el caso de uso)
+    │   └── FactoryController
+    └── application   (detalles y arranque)
+        ├── InputLoader   (parsea las líneas al dominio)
+        └── a/Main10A, b/Main10B
 ```
 
-**Dirección de dependencias:** `application → control → (io + model)` y `io → model`. El dominio (`model`) no importa nada del proyecto.
+**Dirección de dependencias:** `application → control → model` y `application → common.io`. El dominio (`model`) no importa ninguna otra capa; el loader compartido (`common.io`) tampoco depende de nadie.
 
 #### **3\. Explicación clase a clase**
 
@@ -43,9 +44,9 @@ software.ulpgc.aoc.day10
 * **`Machine`** *(record)*: el motor de resolución, **puro e inmutable**. Centraliza los algoritmos: BFS sobre máscaras de botones (`solveMinPresses`, Parte A) y la búsqueda recursiva con caché (`solveVoltageRequirements`, Parte B). No lee ficheros ni imprime: solo calcula costes. Vive en el dominio porque depende solo de `State`, `Button` e `Indicator`.
 * **`MachineSolver`** *(interfaz funcional)*: la **abstracción** de "cómo resolver una máquina" (`int solve(Machine machine)`). Es la pieza que permite el DIP y elegir por polimorfismo la estrategia A o B.
 
-**Capa `io` (frontera de entrada)**
+**Frontera de entrada (compartida: `common.io`)**
 
-* **`MachineLoader`** *(interfaz)*: define *qué* se necesita de la entrada (`List<String> loadLines()`) sin atarse a *cómo* se lee. El arranque depende de esta abstracción, no del detalle de lectura.
+* **`LineLoader`** *(interfaz, puerto)* y **`ResourceLineLoader`** *(adaptador)*: viven en el paquete común `software.ulpgc.aoc.common.io` y los reutilizan **todos los días**. `loadLines()` devuelve las líneas crudas del recurso (`List<String>`); el parseo al dominio ocurre después, en la capa `application` (InputLoader parsea con Machine.from). Así se centraliza la lectura (una sola implementación, sin duplicar) y se separa de la interpretación (SRP).
 
 **Capa `control` (orquesta el caso de uso)**
 
@@ -53,7 +54,6 @@ software.ulpgc.aoc.day10
 
 **Capa `application` (detalles y arranque)**
 
-* **`ResourceMachineLoader`** *(implements `MachineLoader`)*: el detalle de bajo nivel; lee un recurso del classpath y devuelve la lista de líneas. Es intercambiable por otra fuente de datos.
 * **`InputLoader`** *(fachada de ensamblaje)*: lee las líneas, las parsea a máquinas (`Machine::from`) y conecta todo con el `MachineSolver` inyectado, devolviendo un `FactoryController` listo.
 * **`Main10A` / `Main10B`** *(composition root)*: el único punto donde se elige la estrategia. La Parte A inyecta `Machine::solveMinPresses` y la Parte B `machine -> machine.solveVoltageRequirements(new HashMap<>())`; el resto del flujo es idéntico.
 
@@ -61,9 +61,9 @@ software.ulpgc.aoc.day10
 
 * **Inversión de Dependencias (DIP):** `FactoryController` depende de la abstracción `MachineSolver`, no de un algoritmo concreto; el arranque depende de la interfaz `MachineLoader`, no de cómo se leen los datos.
 * **Abierto/Cerrado (OCP):** pedir otra forma de resolver una máquina es inyectar otra estrategia; `FactoryController` queda cerrado a modificación.
-* **Responsabilidad Única (SRP):** `Button` guarda los índices, `Indicator` los datos del panel, `Machine` solo los algoritmos, `FactoryController` solo agrega, `ResourceMachineLoader` solo lee I/O, `InputLoader` solo ensambla.
+* **Responsabilidad Única (SRP):** `Button` guarda los índices, `Indicator` los datos del panel, `Machine` solo los algoritmos, `FactoryController` solo agrega, `ResourceLineLoader` (compartido) solo lee I/O, `InputLoader` solo ensambla.
 * **Inmutabilidad y robustez:** los records (`Button`, `Indicator`, `Machine`) garantizan que el estado no cambie inesperadamente; métodos como `applyButton` devuelven un nuevo `Indicator`, lo que evita efectos colaterales y hace segura la recursividad y el BFS.
-* **Segregación de Interfaces (ISP):** `MachineLoader` expone un único método cohesivo (`loadLines`).
+* **Segregación de Interfaces (ISP):** el puerto compartido `LineLoader` expone un único método cohesivo (`loadLines`).
 * **Patrón Factory Method:** `Machine.from`, `Button.from`, `Indicator.from` y `State.fromChar` convierten texto crudo en objetos del dominio ya válidos.
 * **Inyección de Dependencias (DI) / Strategy:** las máquinas y la estrategia de resolución se pasan desde fuera; el comportamiento se elige sin tocar el núcleo.
 * **Abstracción / Tell-Don't-Ask:** el sistema trabaja con `State.ON/OFF` y delega los cálculos en los propios objetos del dominio en vez de manipular caracteres o listas crudas.

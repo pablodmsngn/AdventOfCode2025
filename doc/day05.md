@@ -11,24 +11,25 @@ Como lo único que cambia es la forma de explotar los rangos, la regla se modela
 
 #### **2\. Arquitectura por capas**
 
-He reorganizado el día en las mismas **cuatro capas** que los días anteriores, con las dependencias apuntando siempre hacia el dominio:
+He reorganizado el día en las mismas **tres capas** (más la frontera `common.io` compartida) que los días anteriores, con las dependencias apuntando siempre hacia el dominio:
 
 ```
-software.ulpgc.aoc.day05
-├── model         (dominio puro, no depende de nadie)
-│   ├── Range
-│   └── FreshnessProtocol
-├── io            (frontera de entrada)
-│   └── AuditLoader
-├── control       (orquesta el caso de uso)
-│   ├── InventoryAuditor
-│   └── AuditBuilder
-└── application   (detalles y arranque)
-    ├── ResourceAuditLoader
-    └── a/Main05A, b/Main05B
+software.ulpgc.aoc
+├── common.io     (entrada compartida por TODOS los días)
+│   ├── LineLoader          (puerto: List<String> loadLines())
+│   └── ResourceLineLoader  (adaptador: lee el recurso del classpath)
+└── day05
+    ├── model         (dominio puro, no depende de nadie)
+    │   ├── Range
+    │   └── FreshnessProtocol
+    ├── control       (orquesta el caso de uso)
+    │   ├── InventoryAuditor
+    │   └── AuditBuilder
+    └── application   (detalles y arranque)
+        └── a/Main05A, b/Main05B
 ```
 
-**Dirección de dependencias:** `application → control → (io + model)` y `io → model`. El dominio (`model`) no importa nada del proyecto.
+**Dirección de dependencias:** `application → control → model` y `application → common.io`. El dominio (`model`) no importa ninguna otra capa; el loader compartido (`common.io`) tampoco depende de nadie.
 
 #### **3\. Explicación clase a clase**
 
@@ -37,9 +38,9 @@ software.ulpgc.aoc.day05
 * **`Range`** *(record)*: un *Value Object* que encapsula toda la matemática de intervalos. Sabe si contiene un número (`contains`), su longitud (`length`), si se solapa con otro rango (`overlapsWith`) y cómo fusionarse con otro (`merge`), además de su orden natural (`Comparable`). Al concentrar aquí esta lógica → **alta cohesión** y el auditor queda limpio.
 * **`FreshnessProtocol`** *(interfaz funcional)*: la **abstracción** de la regla de frescura (`boolean isFresh(long ingredientId, List<Range> ranges)`). Vive en el dominio porque no depende de ninguna otra capa; es la pieza que permite el DIP y elegir el comportamiento (A vs B) por polimorfismo.
 
-**Capa `io` (frontera de entrada)**
+**Frontera de entrada (compartida: `common.io`)**
 
-* **`AuditLoader`** *(interfaz)*: define *qué* se necesita de la entrada (`List<String> loadLines()`) sin atarse a *cómo* se lee. El arranque depende de esta abstracción, no del detalle de lectura.
+* **`LineLoader`** *(interfaz, puerto)* y **`ResourceLineLoader`** *(adaptador)*: viven en el paquete común `software.ulpgc.aoc.common.io` y los reutilizan **todos los días**. `loadLines()` devuelve las líneas crudas del recurso (`List<String>`); el parseo al dominio ocurre después, en la capa `application` (AuditBuilder parsea las dos secciones). Así se centraliza la lectura (una sola implementación, sin duplicar) y se separa de la interpretación (SRP).
 
 **Capa `control` (orquesta el caso de uso)**
 
@@ -48,15 +49,14 @@ software.ulpgc.aoc.day05
 
 **Capa `application` (detalles y arranque)**
 
-* **`ResourceAuditLoader`** *(implements `AuditLoader`)*: el detalle de bajo nivel; lee un recurso del classpath y devuelve la lista de líneas (`reader.lines().toList()`). Es intercambiable por otra fuente de datos.
 * **`Main05A` / `Main05B`** *(composition root)*: el único punto donde se eligen el cargador y el protocolo y se conectan con el Builder. La Parte A inyecta `standardPolicy` (`(id, ranges) -> ranges.stream().anyMatch(r -> r.contains(id))`) y llama a `audit()`; la Parte B inyecta un protocolo nulo y llama a `calculateTotalCoverage()`.
 
 #### **4\. Principios y diseños aplicados**
 
 * **Inversión de Dependencias (DIP):** `InventoryAuditor` depende de la abstracción `FreshnessProtocol`, no de una regla concreta; el arranque depende de la interfaz `AuditLoader`, no de cómo se leen los datos.
 * **Abierto/Cerrado (OCP):** cambiar la regla de frescura (ej. excluir pares) es inyectar otra lambda; el núcleo queda cerrado a modificación y abierto a extensión por polimorfismo.
-* **Responsabilidad Única (SRP):** `Range` guarda la matemática de intervalos, `InventoryAuditor` orquesta el cálculo, `AuditBuilder` solo parsea y ensambla, `ResourceAuditLoader` solo lee I/O.
+* **Responsabilidad Única (SRP):** `Range` guarda la matemática de intervalos, `InventoryAuditor` orquesta el cálculo, `AuditBuilder` solo parsea y ensambla, `ResourceLineLoader` (compartido) solo lee I/O.
 * **Patrón Builder + interfaz fluida:** `AuditBuilder` arma el auditor paso a paso y valida que esté completo antes de crearlo.
-* **Segregación de Interfaces (ISP):** `AuditLoader` expone un único método cohesivo (`loadLines`).
+* **Segregación de Interfaces (ISP):** el puerto compartido `LineLoader` expone un único método cohesivo (`loadLines`).
 * **Inyección de Dependencias (DI) / Strategy:** el cargador y el protocolo se pasan desde fuera; el comportamiento se elige sin tocar el núcleo.
 * **Alta Cohesión y DRY:** la matemática de intervalos está centralizada en `Range`, y la lectura de entrada en una única implementación reutilizable.
