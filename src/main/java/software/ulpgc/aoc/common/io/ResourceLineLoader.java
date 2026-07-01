@@ -6,10 +6,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.List;
 
-/**
- * Shared adapter: reads a classpath resource into a list of lines.
- * Single implementation reused by all days (no more per-day Resource*Loader).
- */
+
 public class ResourceLineLoader implements LineLoader {
     private final String resource;
 

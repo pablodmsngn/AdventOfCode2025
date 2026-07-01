@@ -3,11 +3,7 @@ package software.ulpgc.aoc.day04.control;
 import software.ulpgc.aoc.day04.model.Executor;
 import software.ulpgc.aoc.day04.model.WarehouseGrid;
 
-/**
- * Builder + Factory.
- * Allows configuring step by step which solver we want (A or B) over an
- * already-built domain model (WarehouseGrid), keeping I/O out of the assembly.
- */
+
 public class ExecutorFactory {
     private WarehouseGrid warehouse;
     private ExecutorType type;

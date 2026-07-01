@@ -6,15 +6,10 @@ import software.ulpgc.aoc.day04.model.WarehouseGrid;
 
 import java.util.stream.Stream;
 
-/**
- * REFACTORING:
- * Switched to a 'utility class' (static methods).
- * Reason: Avoid instantiating a new object on each iteration of the Part B loop.
- * It is now a pure function: it receives a state (warehouse) and returns a result.
- */
+
 public class ForkliftOptimizer {
 
-    // avoid instantiation
+    //avoid instantiation
     private ForkliftOptimizer() {}
 
     public static long countAccessibleRolls(WarehouseGrid warehouse) {
