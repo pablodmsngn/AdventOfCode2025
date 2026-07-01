@@ -26,6 +26,7 @@ software.ulpgc.aoc
     │   ├── InventoryAuditor
     │   └── AuditBuilder
     └── application   (detalles y arranque)
+        ├── InputLoader   (parsea las líneas al dominio)
         └── a/Main05A, b/Main05B
 ```
 
@@ -49,7 +50,8 @@ software.ulpgc.aoc
 
 **Capa `application` (detalles y arranque)**
 
-* **`Main05A` / `Main05B`** *(composition root)*: el único punto donde se eligen el cargador y el protocolo y se conectan con el Builder. La Parte A inyecta `standardPolicy` (`(id, ranges) -> ranges.stream().anyMatch(r -> r.contains(id))`) y llama a `audit()`; la Parte B inyecta un protocolo nulo y llama a `calculateTotalCoverage()`.
+* **`InputLoader`** *(fachada de ensamblaje)*: usa el `ResourceLineLoader` compartido para leer las líneas y construye el `InventoryAuditor` con el `AuditBuilder` y el protocolo inyectado.
+* **`Main05A` / `Main05B`** *(composition root)*: el único punto donde se elige el protocolo y se pide el resultado. La Parte A inyecta `standardPolicy` (`(id, ranges) -> ranges.stream().anyMatch(r -> r.contains(id))`) y llama a `audit()`; la Parte B inyecta un protocolo nulo y llama a `calculateTotalCoverage()`.
 
 #### **4\. Principios y diseños aplicados**
 
